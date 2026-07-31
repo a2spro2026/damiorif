@@ -9,13 +9,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --burgundy: #54000b;
-            --burgundy-deep: #2d0006;
+            /* Palette alignée sur le fond Damiorif (vert forêt + or) */
+            --forest: #1a3d2c;
+            --forest-deep: #0c2418;
+            --burgundy: #1a3d2c;
+            --burgundy-deep: #0c2418;
             --gold: #c9a45c;
             --gold-light: #e8d5a8;
             --gold-glow: rgba(201, 164, 92, 0.45);
-            --glass: rgba(45, 0, 6, 0.72);
-            --glass-border: rgba(201, 164, 92, 0.35);
+            --glass: rgba(12, 36, 24, 0.78);
+            --glass-border: rgba(201, 164, 92, 0.4);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -23,7 +26,7 @@
         body {
             min-height: 100vh;
             font-family: 'Cairo', sans-serif;
-            color: #fff;
+            color: #f3e6d0;
             overflow-x: hidden;
         }
 
@@ -38,10 +41,11 @@
             position: fixed;
             inset: 0;
             background: linear-gradient(
-                105deg,
-                rgba(45, 0, 6, 0.55) 0%,
-                rgba(45, 0, 6, 0.25) 45%,
-                rgba(45, 0, 6, 0.15) 100%
+                100deg,
+                rgba(12, 36, 24, 0.15) 0%,
+                rgba(12, 36, 24, 0.1) 42%,
+                rgba(12, 36, 24, 0.5) 72%,
+                rgba(12, 36, 24, 0.68) 100%
             );
             z-index: 1;
         }
@@ -83,7 +87,7 @@
 
         .page {
             position: relative;
-            z-index: 3;
+            z-index: 4;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -356,10 +360,17 @@
                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                         </svg>
                         <select name="statut" id="statut" class="form-control" required>
-                            <option value="" disabled {{ old('statut', 'admin') ? '' : 'selected' }}>— Sélectionner —</option>
-                            <option value="admin" {{ old('statut', 'admin') === 'admin' ? 'selected' : '' }}>Administrateur</option>
-                            <option value="manager" {{ old('statut', 'admin') === 'manager' ? 'selected' : '' }}>Manager</option>
-                            <option value="employe" {{ old('statut', 'admin') === 'employe' ? 'selected' : '' }}>Employé</option>
+                            <option value="" disabled {{ old('statut', 'directeur') ? '' : 'selected' }}>— Sélectionner —</option>
+                            <option value="directeur" {{ old('statut', 'directeur') === 'directeur' ? 'selected' : '' }}>Directeur</option>
+                            <option value="gerant" {{ old('statut', 'directeur') === 'gerant' ? 'selected' : '' }}>Gérant</option>
+                            <option value="facturation" {{ old('statut', 'directeur') === 'facturation' ? 'selected' : '' }}>Facturation</option>
+                            <option value="magasinier" {{ old('statut', 'directeur') === 'magasinier' ? 'selected' : '' }}>Magasinier</option>
+                            <option value="depot_tanger" {{ old('statut', 'directeur') === 'depot_tanger' ? 'selected' : '' }}>Depot Tanger</option>
+                            <option value="depot_nador" {{ old('statut', 'directeur') === 'depot_nador' ? 'selected' : '' }}>Depot Nador</option>
+                            <option value="depot_tetouan" {{ old('statut', 'directeur') === 'depot_tetouan' ? 'selected' : '' }}>Depot Tetouan</option>
+                            <option value="depot_houcima" {{ old('statut', 'directeur') === 'depot_houcima' ? 'selected' : '' }}>Depot Houcima</option>
+                            <option value="depot_belkciri" {{ old('statut', 'directeur') === 'depot_belkciri' ? 'selected' : '' }}>Depot Belkciri</option>
+                            <option value="depot_damiorif" {{ old('statut', 'directeur') === 'depot_damiorif' ? 'selected' : '' }}>Dépôt DamioRif</option>
                         </select>
                     </div>
                 </div>

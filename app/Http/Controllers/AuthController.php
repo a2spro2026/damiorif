@@ -22,7 +22,7 @@ class AuthController extends Controller
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'statut' => ['required', 'string', 'in:admin,manager,employe'],
+            'statut' => ['required', 'string', 'in:directeur,gerant,facturation,magasinier,depot_tanger,depot_nador,depot_tetouan,depot_houcima,depot_belkciri,depot_damiorif'],
             'login' => ['required', 'string'],
             'password' => ['required', 'string'],
         ], [

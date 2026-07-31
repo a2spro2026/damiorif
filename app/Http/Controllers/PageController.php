@@ -2,37 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\UserAccess;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class PageController extends Controller
 {
-    public function fournisseurs(): View
+    public function show(string $title): View
     {
-        return view('pages.placeholder', ['title' => 'Fournisseurs']);
+        return view('pages.placeholder', [
+            'title' => $title,
+        ]);
     }
 
-    public function stock(): View
+    public function configuration(): RedirectResponse
     {
-        return view('pages.placeholder', ['title' => 'Stock']);
+        return redirect()->route('configuration.utilisateurs.index');
     }
 
-    public function clients(): View
+    public function moduleHome(string $module): RedirectResponse
     {
-        return view('pages.placeholder', ['title' => 'Client']);
-    }
+        $nav = UserAccess::navigationFor(auth()->user())[$module] ?? null;
+        if (! $nav || empty($nav['children'])) {
+            return redirect()->route('dashboard');
+        }
 
-    public function charges(): View
-    {
-        return view('pages.placeholder', ['title' => 'Charges']);
-    }
-
-    public function rapports(): View
-    {
-        return view('pages.placeholder', ['title' => 'Rapports']);
-    }
-
-    public function configuration(): View
-    {
-        return view('pages.placeholder', ['title' => 'Configuration']);
+        return redirect()->route($nav['children'][0]['route']);
     }
 }

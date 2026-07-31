@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->string('username')->unique()->after('name');
-            $table->string('statut')->default('employe')->after('password');
+            $table->string('statut')->default('magasinier')->after('password');
         });
     }
 
