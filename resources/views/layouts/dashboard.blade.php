@@ -53,6 +53,64 @@
             gap: 1rem;
         }
 
+        .sidebar-collapse-btn {
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            border: 1px solid rgba(201, 164, 92, 0.38);
+            background:
+                linear-gradient(145deg, rgba(201, 164, 92, 0.16) 0%, rgba(0, 0, 0, 0.28) 100%);
+            color: var(--gold-light);
+            cursor: pointer;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.06),
+                0 4px 14px rgba(0, 0, 0, 0.25);
+            transition:
+                transform 0.25s ease,
+                border-color 0.25s ease,
+                background 0.25s ease,
+                box-shadow 0.25s ease,
+                color 0.25s ease;
+        }
+
+        .sidebar-collapse-btn:hover {
+            transform: translateY(-1px);
+            color: #fff;
+            border-color: rgba(201, 164, 92, 0.65);
+            background:
+                linear-gradient(145deg, rgba(201, 164, 92, 0.28) 0%, rgba(0, 0, 0, 0.35) 100%);
+            box-shadow:
+                0 0 0 3px rgba(201, 164, 92, 0.12),
+                0 6px 18px rgba(201, 164, 92, 0.2);
+        }
+
+        .sidebar-collapse-btn:focus-visible {
+            outline: 2px solid var(--gold);
+            outline-offset: 2px;
+        }
+
+        .sidebar-collapse-btn svg {
+            width: 20px;
+            height: 20px;
+            display: block;
+        }
+
+        .sidebar-collapse-btn .icon-show {
+            display: none;
+        }
+
+        body.sidebar-collapsed .sidebar-collapse-btn .icon-hide {
+            display: none;
+        }
+
+        body.sidebar-collapsed .sidebar-collapse-btn .icon-show {
+            display: block;
+        }
+
         .navbar-logo {
             width: 54px;
             height: 54px;
@@ -196,6 +254,21 @@
             padding: 1.05rem 0.85rem 1rem;
             z-index: 90;
             overflow: hidden;
+            transform: translateX(0);
+            opacity: 1;
+            pointer-events: auto;
+            transition:
+                transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 0.25s ease,
+                visibility 0.32s;
+            visibility: visible;
+        }
+
+        body.sidebar-collapsed .sidebar {
+            transform: translateX(calc(-1 * var(--sidebar-width) - 12px));
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
         }
 
         .sidebar-scroll {
@@ -619,6 +692,11 @@
             margin-left: var(--sidebar-width);
             padding: 1rem 1.5rem 1.5rem;
             min-height: calc(100vh - var(--navbar-height));
+            transition: margin-left 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        body.sidebar-collapsed .main-content {
+            margin-left: 0;
         }
 
         .content-panel {
@@ -756,6 +834,23 @@
                 border-right: none;
                 border-bottom: 1px solid rgba(201, 164, 92, 0.2);
                 overflow: visible;
+                max-height: 2000px;
+                transition:
+                    max-height 0.35s ease,
+                    opacity 0.25s ease,
+                    padding 0.25s ease,
+                    border-width 0.25s ease,
+                    transform 0.32s ease;
+            }
+
+            body.sidebar-collapsed .sidebar {
+                transform: none;
+                max-height: 0;
+                opacity: 0;
+                padding-top: 0;
+                padding-bottom: 0;
+                border-bottom-width: 0;
+                overflow: hidden;
             }
 
             .sidebar-scroll {
@@ -766,7 +861,8 @@
                 flex-direction: column;
             }
 
-            .main-content {
+            .main-content,
+            body.sidebar-collapsed .main-content {
                 margin-left: 0;
             }
 
@@ -789,12 +885,37 @@
             .top-navbar {
                 justify-content: flex-start;
             }
+
+            .sidebar-collapse-btn {
+                width: 38px;
+                height: 38px;
+            }
         }
     </style>
 </head>
 <body>
     <header class="top-navbar">
         <div class="navbar-brand-block">
+            <button
+                type="button"
+                class="sidebar-collapse-btn"
+                id="sidebarCollapseBtn"
+                aria-controls="appSidebar"
+                aria-expanded="true"
+                aria-label="Masquer le menu latéral"
+                title="Masquer / afficher le menu"
+            >
+                <svg class="icon-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="16" rx="2"/>
+                    <path d="M9 4v16"/>
+                    <path d="M5 9h2M5 12h2M5 15h2"/>
+                </svg>
+                <svg class="icon-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="16" rx="2"/>
+                    <path d="M9 4v16"/>
+                    <path d="M13 9h6M13 12h6M13 15h4"/>
+                </svg>
+            </button>
             <img
                 src="{{ asset('images/logo.png') }}"
                 alt="Damio Rif"
@@ -822,7 +943,7 @@
     </header>
 
     <div class="app-shell">
-        <aside class="sidebar">
+        <aside class="sidebar" id="appSidebar">
             <div class="sidebar-scroll">
                 <a href="{{ route('dashboard') }}" class="btn-dashboard {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -894,6 +1015,8 @@
     <script>
         (function () {
             var STORAGE_KEY = 'damiorif_sidebar_open';
+            var COLLAPSE_KEY = 'damiorif_sidebar_collapsed';
+            var collapseBtn = document.getElementById('sidebarCollapseBtn');
 
             function getOpenMenus() {
                 try {
@@ -926,6 +1049,32 @@
                     if (key) open.push(key);
                 });
                 saveOpenMenus(open);
+            }
+
+            function setSidebarCollapsed(collapsed) {
+                document.body.classList.toggle('sidebar-collapsed', collapsed);
+                if (collapseBtn) {
+                    collapseBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+                    collapseBtn.setAttribute(
+                        'aria-label',
+                        collapsed ? 'Afficher le menu latéral' : 'Masquer le menu latéral'
+                    );
+                }
+                try {
+                    localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0');
+                } catch (e) {}
+            }
+
+            try {
+                setSidebarCollapsed(localStorage.getItem(COLLAPSE_KEY) === '1');
+            } catch (e) {
+                setSidebarCollapsed(false);
+            }
+
+            if (collapseBtn) {
+                collapseBtn.addEventListener('click', function () {
+                    setSidebarCollapsed(!document.body.classList.contains('sidebar-collapsed'));
+                });
             }
 
             var saved = getOpenMenus();
