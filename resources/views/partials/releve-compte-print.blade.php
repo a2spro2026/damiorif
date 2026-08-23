@@ -68,7 +68,7 @@
 
     <div class="kpi-row">
         <div class="kpi">
-            <div class="kpi-label">Total Achats</div>
+            <div class="kpi-label">{{ $totalDebitLabel ?? 'Total Achats' }}</div>
             <div class="kpi-value">{{ number_format($totalAchats, 2, ',', ' ') }} MAD</div>
         </div>
         <div class="kpi">

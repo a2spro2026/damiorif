@@ -33,7 +33,7 @@
     </div>
 
     @include('partials.kpi-grid', ['cards' => [
-        ['label' => 'Total Achats', 'value' => $totalAchats, 'unit' => 'MAD'],
+        ['label' => $totalDebitLabel ?? 'Total Vente', 'value' => $totalAchats, 'unit' => 'MAD'],
         ['label' => 'Total Payé', 'value' => $totalPaye, 'unit' => 'MAD'],
         ['label' => 'Total Solde', 'value' => $totalSolde, 'unit' => 'MAD'],
     ]])

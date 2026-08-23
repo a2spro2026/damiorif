@@ -40,6 +40,7 @@ class ReleveCompteFournisseurController extends Controller
             'selectedMois' => $mois,
             'monthOptions' => ReleveCompteService::monthOptions(),
             'rows' => $data['rows'],
+            'totalDebitLabel' => 'Total Achats',
             'totalAchats' => $data['totalAchats'],
             'totalPaye' => $data['totalPaye'],
             'totalSolde' => $data['totalSolde'],
