@@ -20,7 +20,7 @@
     <div class="page-toolbar">
         <h2>{{ $title }}</h2>
         <div style="display:flex;gap:.65rem;flex-wrap:wrap;align-items:center;">
-            @if (($depots ?? collect())->count() > 1)
+            @if (count($depots ?? []) > 1)
             <form method="GET" class="filter">
                 <select name="depot" onchange="this.form.submit()">
                     <option value="">Tous les dépôts</option>
