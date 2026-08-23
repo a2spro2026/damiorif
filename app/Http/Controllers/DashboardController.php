@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\BonAchat;
+use App\Models\BonCommandeDepot;
+use App\Models\BonVente;
 use App\Support\Depots;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -112,6 +114,44 @@ class DashboardController extends Controller
                 ->limit(5)
                 ->get(['date_bon', 'numero_bon', 'nom_fournisseur', 'montant', 'solde']);
 
+        $derniersBonsVenteQuery = BonVente::query()
+            ->orderByDesc('date_bon')
+            ->orderByDesc('id')
+            ->limit(5);
+
+        if ($userDepot) {
+            $derniersBonsVenteQuery->where('depot', $userDepot);
+        }
+
+        $derniersBonsVente = Schema::hasTable('bons_vente')
+            ? $derniersBonsVenteQuery->get(['date_bon', 'numero_bon', 'nom_client', 'montant', 'solde'])
+            : collect();
+
+        $derniersBonsCommande = collect();
+        if (Schema::hasTable('bons_commande_depot')) {
+            $derniersBonsCommandeQuery = BonCommandeDepot::query()
+                ->with('lignes')
+                ->orderByDesc('date_commande')
+                ->orderByDesc('id')
+                ->limit(5);
+
+            if ($userDepot) {
+                $derniersBonsCommandeQuery->where('depot_demandeur', $userDepot);
+            } else {
+                $derniersBonsCommandeQuery->whereIn('depot_demandeur', Depots::regionalKeys());
+            }
+
+            $depotLabels = Depots::options();
+            $derniersBonsCommande = $derniersBonsCommandeQuery->get()->map(function (BonCommandeDepot $cmd) use ($depotLabels) {
+                return [
+                    'date' => $cmd->date_commande,
+                    'depot' => $depotLabels[$cmd->depot_demandeur] ?? $cmd->depot_demandeur,
+                    'numero' => $cmd->numero,
+                    'quantite' => round((float) $cmd->lignes->sum('qte_demandee'), 3),
+                ];
+            });
+        }
+
         return view('dashboard.index', [
             'depots' => $depots,
             'stockDamiorif' => $stockByDepot['damiorif'] ?? 0,
@@ -128,6 +168,8 @@ class DashboardController extends Controller
             'ventesMonthLabels' => $monthLabels,
             'ventesYearLabels' => array_map('strval', $years),
             'derniersBonsAchat' => $derniersBonsAchat,
+            'derniersBonsVente' => $derniersBonsVente,
+            'derniersBonsCommande' => $derniersBonsCommande,
             'isDepotUser' => $isDepotUser,
         ]);
     }

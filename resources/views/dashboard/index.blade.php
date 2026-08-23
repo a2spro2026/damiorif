@@ -38,7 +38,7 @@
         width:100%;
         border-collapse:separate;
         border-spacing:0;
-        min-width:420px;
+        min-width:520px;
     }
     .dash-mini-table thead th {
         text-align:center !important;
@@ -377,6 +377,85 @@
             </div>
             <div class="chart-wrap">
                 <canvas id="ventesChart"></canvas>
+            </div>
+        </article>
+
+        <article class="dash-card dash-card-table">
+            <div class="card-top">
+                <div class="card-title">5 Derniers Bons de Ventes</div>
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>
+                </div>
+            </div>
+            <div class="dash-mini-table-wrap">
+                <table class="dash-mini-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>N° Bon</th>
+                            <th>Nom Client</th>
+                            <th>Montant</th>
+                            <th>Paiement</th>
+                            <th>Solde</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($derniersBonsVente as $bon)
+                            @php
+                                $montant = (float) $bon->montant;
+                                $solde = (float) $bon->solde;
+                                $paiement = round($montant - $solde, 2);
+                            @endphp
+                            <tr>
+                                <td>{{ $bon->date_bon?->format('d/m/Y') }}</td>
+                                <td>{{ $bon->numero_bon }}</td>
+                                <td>{{ $bon->nom_client }}</td>
+                                <td>{{ number_format($montant, 2, ',', ' ') }}</td>
+                                <td>{{ number_format($paiement, 2, ',', ' ') }}</td>
+                                <td>{{ number_format($solde, 2, ',', ' ') }}</td>
+                            </tr>
+                        @empty
+                            <tr class="empty-mini">
+                                <td colspan="6">Aucun bon de vente</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </article>
+
+        <article class="dash-card dash-card-table">
+            <div class="card-top">
+                <div class="card-title">5 Derniers Bon Commande</div>
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                </div>
+            </div>
+            <div class="dash-mini-table-wrap">
+                <table class="dash-mini-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Dépôt</th>
+                            <th>N° BN</th>
+                            <th>Quantité</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($derniersBonsCommande as $cmd)
+                            <tr>
+                                <td>{{ $cmd['date']?->format('d/m/Y') }}</td>
+                                <td>{{ $cmd['depot'] }}</td>
+                                <td>{{ $cmd['numero'] }}</td>
+                                <td>{{ number_format($cmd['quantite'], 2, ',', ' ') }}</td>
+                            </tr>
+                        @empty
+                            <tr class="empty-mini">
+                                <td colspan="4">Aucun bon de commande</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </article>
 

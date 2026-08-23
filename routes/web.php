@@ -5,6 +5,7 @@ use App\Http\Controllers\BalanceClientController;
 use App\Http\Controllers\BalanceFournisseurController;
 use App\Http\Controllers\BanqueController;
 use App\Http\Controllers\BonAchatController;
+use App\Http\Controllers\BonCommandeDepotController;
 use App\Http\Controllers\BonVenteController;
 use App\Http\Controllers\ChargeController;
 use App\Http\Controllers\ChauffeurController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\ReglementController;
 use App\Http\Controllers\ReglementVenteController;
 use App\Http\Controllers\ReleveCompteClientController;
 use App\Http\Controllers\ReleveCompteFournisseurController;
+use App\Http\Controllers\StockManquesController;
 use App\Http\Controllers\StockMouvementController;
 use App\Http\Controllers\TresorerieController;
 use App\Http\Controllers\UniteMesureController;
@@ -64,16 +66,25 @@ Route::middleware(['auth', 'access'])->group(function () {
     Route::get('/fournisseurs/releve-compte/print', [ReleveCompteFournisseurController::class, 'print'])->name('fournisseurs.releve_compte.print');
 
     // Stock
-    Route::get('/stock/fiche-produit', fn () => redirect()->route('stock.depot_tanger'))->name('stock.fiche_produit');
-    Route::get('/stock/depot-tanger', fn () => app(DepotStockController::class)->show('tanger'))->name('stock.depot_tanger');
-    Route::get('/stock/depot-nador', fn () => app(DepotStockController::class)->show('nador'))->name('stock.depot_nador');
-    Route::get('/stock/depot-tetouan', fn () => app(DepotStockController::class)->show('tetouan'))->name('stock.depot_tetouan');
-    Route::get('/stock/depot-houcima', fn () => app(DepotStockController::class)->show('houcima'))->name('stock.depot_houcima');
-    Route::get('/stock/depot-belkciri', fn () => app(DepotStockController::class)->show('belkciri'))->name('stock.depot_belkciri');
-    Route::get('/stock/depot-damiorif', fn () => app(DepotStockController::class)->show('damiorif'))->name('stock.depot_damiorif');
+    Route::get('/stock/depot', [DepotStockController::class, 'index'])->name('stock.depot');
+    Route::get('/stock/fiche-produit', fn () => redirect()->route('stock.depot'))->name('stock.fiche_produit');
+    Route::get('/stock/depot-tanger', fn () => redirect()->route('stock.depot', ['depot' => 'tanger']))->name('stock.depot_tanger');
+    Route::get('/stock/depot-nador', fn () => redirect()->route('stock.depot', ['depot' => 'nador']))->name('stock.depot_nador');
+    Route::get('/stock/depot-tetouan', fn () => redirect()->route('stock.depot', ['depot' => 'tetouan']))->name('stock.depot_tetouan');
+    Route::get('/stock/depot-houcima', fn () => redirect()->route('stock.depot', ['depot' => 'houcima']))->name('stock.depot_houcima');
+    Route::get('/stock/depot-belkciri', fn () => redirect()->route('stock.depot', ['depot' => 'belkciri']))->name('stock.depot_belkciri');
+    Route::get('/stock/depot-damiorif', fn () => redirect()->route('stock.depot', ['depot' => 'damiorif']))->name('stock.depot_damiorif');
+    Route::get('/stock/manques', [StockManquesController::class, 'index'])->name('stock.manques');
+    Route::get('/stock/commande-depot', [BonCommandeDepotController::class, 'index'])->name('stock.commande_depot');
+    Route::post('/stock/commande-depot', [BonCommandeDepotController::class, 'store'])->name('stock.commande_depot.store');
+    Route::put('/stock/commande-depot/{commande}', [BonCommandeDepotController::class, 'update'])->name('stock.commande_depot.update');
+    Route::delete('/stock/commande-depot/{commande}', [BonCommandeDepotController::class, 'destroy'])->name('stock.commande_depot.destroy');
+    Route::patch('/stock/commande-depot/{commande}/envoyer', [BonCommandeDepotController::class, 'envoyer'])->name('stock.commande_depot.envoyer');
+    Route::patch('/stock/commande-depot/{commande}/convertir', [BonCommandeDepotController::class, 'convertir'])->name('stock.commande_depot.convertir');
+    Route::patch('/stock/commande-depot/{commande}/suspendre', [BonCommandeDepotController::class, 'suspendre'])->name('stock.commande_depot.suspendre');
+    Route::patch('/stock/commande-depot/{commande}/expedier', [BonCommandeDepotController::class, 'expedier'])->name('stock.commande_depot.expedier');
+    Route::get('/stock/commande-depot/{commande}/print', [BonCommandeDepotController::class, 'print'])->name('stock.commande_depot.print');
     Route::get('/stock/mouvement', [StockMouvementController::class, 'index'])->name('stock.mouvement');
-    Route::post('/stock/mouvement', [StockMouvementController::class, 'store'])->name('stock.mouvement.store');
-    Route::delete('/stock/mouvement/{mouvement}', [StockMouvementController::class, 'destroy'])->name('stock.mouvement.destroy');
 
     // Clients
     Route::get('/clients/fiche', [ClientController::class, 'index'])->name('clients.fiche');

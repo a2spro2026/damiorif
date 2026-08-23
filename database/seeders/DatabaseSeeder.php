@@ -25,5 +25,20 @@ class DatabaseSeeder extends Seeder
                 'autorisations' => AppMenus::allPermissionKeys(),
             ]
         );
+
+        if (app()->environment('local')) {
+            User::query()->updateOrCreate(
+                ['username' => 'yahya'],
+                [
+                    'name' => 'Yahya',
+                    'contact' => '0661755048',
+                    'email' => 'yahya@damiorif.local',
+                    'password' => Hash::make('password'),
+                    'mot_de_passe' => 'password',
+                    'statut' => 'directeur',
+                    'autorisations' => AppMenus::allPermissionKeys(),
+                ]
+            );
+        }
     }
 }

@@ -19,6 +19,9 @@ class UserAccess
             'clients.reglement_vente',
             'clients.balance',
             'clients.releve_compte',
+            'stock.depot',
+            'stock.mouvement',
+            'stock.commande_depot',
             'charges.etat_charges',
             'charges.etat_depenses',
         ];

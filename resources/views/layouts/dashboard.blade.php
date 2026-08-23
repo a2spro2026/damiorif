@@ -877,6 +877,22 @@
             color: var(--gold-light);
         }
 
+        .menu-badge {
+            margin-left: auto;
+            min-width: 1.25rem;
+            height: 1.25rem;
+            padding: 0 .35rem;
+            border-radius: 999px;
+            background: #3b82f6;
+            color: #fff;
+            font-size: .68rem;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
         .submenu-group-label {
             font-size: 0.6rem;
             text-transform: uppercase;
@@ -1445,10 +1461,13 @@
                                     <li>
                                         <a
                                             href="{{ route($child['route']) }}"
-                                            class="submenu-link {{ request()->routeIs($child['route']) ? 'active' : '' }}"
+                                            class="submenu-link {{ request()->routeIs($child['route']) || ($child['key'] === 'stock.depot' && request()->routeIs('stock.depot_*')) ? 'active' : '' }}"
                                         >
                                             @include('partials.menu-icon', ['icon' => $child['icon'] ?? 'file', 'class' => 'sub-icon'])
                                             <span>{{ $child['label'] }}</span>
+                                            @if (($child['key'] ?? '') === 'stock.commande_depot' && \App\Support\StockNotifications::pendingCommandes(auth()->user()) > 0)
+                                                <span class="menu-badge">{{ \App\Support\StockNotifications::pendingCommandes(auth()->user()) }}</span>
+                                            @endif
                                         </a>
                                     </li>
                                 @endforeach

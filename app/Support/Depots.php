@@ -15,4 +15,27 @@ class Depots
             'damiorif' => 'Dépôt DamioRif',
         ];
     }
+
+    public static function centralKey(): string
+    {
+        return 'damiorif';
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function regionalKeys(): array
+    {
+        return ['tanger', 'nador', 'tetouan', 'houcima', 'belkciri'];
+    }
+
+    public static function isCentral(string $depotKey): bool
+    {
+        return $depotKey === self::centralKey();
+    }
+
+    public static function isRegional(string $depotKey): bool
+    {
+        return in_array($depotKey, self::regionalKeys(), true);
+    }
 }

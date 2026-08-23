@@ -205,26 +205,26 @@
         .form-control {
             width: 100%;
             padding: 0.78rem 1rem 0.78rem 2.75rem;
-            background: #FFFFFF;
-            border: 1px solid rgba(94, 200, 179, 0.45);
+            background: rgba(7, 11, 20, 0.75);
+            border: 1px solid rgba(94, 200, 179, 0.35);
             border-radius: 12px;
-            color: #0F172A;
+            color: #E8F5F2;
             font-family: inherit;
             font-size: 0.92rem;
             transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
             outline: none;
-            caret-color: #0F172A;
-            color-scheme: light;
+            caret-color: #A8E6D8;
+            color-scheme: dark;
         }
 
-        /* Chrome/Edge autofill : évite fond jaune + texte rouge/noir illisible */
+        /* Chrome/Edge autofill : garde le fond sombre + texte clair */
         .form-control:-webkit-autofill,
         .form-control:-webkit-autofill:hover,
         .form-control:-webkit-autofill:focus,
         .form-control:-webkit-autofill:active {
-            -webkit-text-fill-color: #0F172A !important;
-            caret-color: #0F172A;
-            box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+            -webkit-text-fill-color: #E8F5F2 !important;
+            caret-color: #A8E6D8;
+            box-shadow: 0 0 0 1000px #0B1020 inset !important;
             transition: background-color 99999s ease-out;
             border-color: rgba(94, 200, 179, 0.55) !important;
         }
@@ -233,22 +233,22 @@
             padding-left: 2.75rem;
             cursor: pointer;
             appearance: none;
-            background-color: #FFFFFF;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%230F766E' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+            background-color: rgba(7, 11, 20, 0.75);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23A8E6D8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 14px center;
         }
 
         select.form-control option {
-            background: #FFFFFF;
-            color: #0F172A;
+            background: #0B1020;
+            color: #E8F5F2;
         }
 
-        .form-control::placeholder { color: #94A3B8; }
+        .form-control::placeholder { color: rgba(168, 230, 216, 0.45); }
 
         .form-control:focus {
             border-color: var(--gold);
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(7, 11, 20, 0.92);
             box-shadow:
                 0 0 0 3px rgba(94, 200, 179, 0.15),
                 0 0 20px rgba(94, 200, 179, 0.2);

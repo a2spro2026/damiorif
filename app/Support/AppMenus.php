@@ -48,6 +48,15 @@ class AppMenus
                     ['key' => 'fournisseurs.releve_compte', 'label' => 'Relevé Compte', 'route' => 'fournisseurs.releve_compte', 'icon' => 'report'],
                 ],
             ],
+            'stock' => [
+                'label' => 'Stock',
+                'icon' => 'stock',
+                'children' => [
+                    ['key' => 'stock.depot', 'label' => 'Stock Dépôt', 'route' => 'stock.depot', 'icon' => 'warehouse'],
+                    ['key' => 'stock.mouvement', 'label' => 'Mouvement Stock', 'route' => 'stock.mouvement', 'icon' => 'transfer'],
+                    ['key' => 'stock.commande_depot', 'label' => 'Commandes Dépôt', 'route' => 'stock.commande_depot', 'icon' => 'cart'],
+                ],
+            ],
             'clients' => [
                 'label' => 'Client',
                 'icon' => 'clients',
@@ -57,19 +66,6 @@ class AppMenus
                     ['key' => 'clients.reglement_vente', 'label' => 'Réglement Vente', 'route' => 'clients.reglement_vente', 'icon' => 'payment'],
                     ['key' => 'clients.balance', 'label' => 'Balance Clients', 'route' => 'clients.balance', 'icon' => 'balance'],
                     ['key' => 'clients.releve_compte', 'label' => 'Relevé Compte', 'route' => 'clients.releve_compte', 'icon' => 'report'],
-                ],
-            ],
-            'stock' => [
-                'label' => 'Stock',
-                'icon' => 'stock',
-                'children' => [
-                    ['key' => 'stock.depot_tanger', 'label' => 'Depot Tanger', 'route' => 'stock.depot_tanger', 'icon' => 'warehouse'],
-                    ['key' => 'stock.depot_nador', 'label' => 'Depot Nador', 'route' => 'stock.depot_nador', 'icon' => 'warehouse'],
-                    ['key' => 'stock.depot_tetouan', 'label' => 'Depot Tetouan', 'route' => 'stock.depot_tetouan', 'icon' => 'warehouse'],
-                    ['key' => 'stock.depot_houcima', 'label' => 'Depot Houcima', 'route' => 'stock.depot_houcima', 'icon' => 'warehouse'],
-                    ['key' => 'stock.depot_belkciri', 'label' => 'Depot Belkciri', 'route' => 'stock.depot_belkciri', 'icon' => 'warehouse'],
-                    ['key' => 'stock.depot_damiorif', 'label' => 'Dépôt DamioRif', 'route' => 'stock.depot_damiorif', 'icon' => 'warehouse'],
-                    ['key' => 'stock.mouvement', 'label' => 'Mouvement Stock', 'route' => 'stock.mouvement', 'icon' => 'transfer'],
                 ],
             ],
             'charges' => [

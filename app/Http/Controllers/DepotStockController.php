@@ -2,15 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BonAchat;
 use App\Support\Depots;
+use App\Support\StockDepotService;
 use App\Support\UserAccess;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class DepotStockController extends Controller
 {
-    public function show(string $depot): View
+    public function index(Request $request): View
+    {
+        $user = $request->user();
+        $depotKey = UserAccess::depotKey($user);
+        $depotOptions = UserAccess::depotOptionsFor($user);
+
+        $depot = $depotKey ?? (string) $request->query('depot', Depots::centralKey());
+        if (! array_key_exists($depot, $depotOptions)) {
+            $depot = array_key_first($depotOptions) ?: Depots::centralKey();
+        }
+
+        return $this->show($depot, $depotOptions);
+    }
+
+    public function show(string $depot, ?array $depotOptions = null): View
     {
         $options = Depots::options();
         abort_unless(array_key_exists($depot, $options), 404);
@@ -21,42 +35,15 @@ class DepotStockController extends Controller
             abort(403);
         }
 
-        $achats = BonAchat::query()
-            ->with('lignes')
-            ->where('depot', $depot)
-            ->orderByDesc('date_bon')
-            ->orderByDesc('id')
-            ->get();
-
-        $achatLignes = collect();
-        foreach ($achats as $bon) {
-            foreach ($bon->lignes as $ligne) {
-                $achatLignes->push([
-                    'date' => $bon->date_bon,
-                    'numero_bon' => $bon->numero_bon,
-                    'fournisseur' => $bon->nom_fournisseur,
-                    'ref' => $ligne->ref ?: '—',
-                    'designation' => $ligne->designation,
-                    'qte' => (float) $ligne->qte,
-                    'prix_unitaire' => (float) $ligne->prix_unitaire,
-                    'montant' => (float) $ligne->sous_total,
-                ]);
-            }
-        }
+        $depotOptions ??= UserAccess::depotOptionsFor($user);
+        $stockRows = StockDepotService::stockForDepot($depot);
 
         return view('stock.depot.index', [
             'depot' => $depot,
             'depotLabel' => $options[$depot],
-            'achatLignes' => $achatLignes,
-            'totalAchatsMontant' => round((float) $achatLignes->sum('montant'), 2),
-            'totalAchatsQte' => round((float) $achatLignes->sum('qte'), 3),
+            'depotOptions' => $depotOptions,
+            'stockRows' => $stockRows,
+            'lockedDepot' => $userDepot,
         ]);
-    }
-
-    public function showByRequest(Request $request): View
-    {
-        $depot = (string) $request->route('depot', '');
-
-        return $this->show($depot);
     }
 }
