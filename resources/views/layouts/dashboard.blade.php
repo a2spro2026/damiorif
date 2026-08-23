@@ -13,6 +13,11 @@
             } catch (e) {
                 document.documentElement.setAttribute('data-theme', 'dark');
             }
+            try {
+                if (localStorage.getItem('damiorif-sidebar') === 'collapsed') {
+                    document.documentElement.setAttribute('data-sidebar', 'collapsed');
+                }
+            } catch (e) {}
         })();
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -243,6 +248,37 @@
             border-color: rgba(15, 118, 110, 0.28);
         }
 
+        .sidebar-panel-toggle {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            border: 1px solid var(--border-strong);
+            background: var(--surface);
+            color: var(--gold);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+            flex-shrink: 0;
+        }
+        .sidebar-panel-toggle:hover {
+            transform: translateY(-1px);
+            border-color: var(--gold);
+            box-shadow: 0 6px 16px var(--gold-glow);
+        }
+        .sidebar-panel-toggle svg { width: 18px; height: 18px; }
+        .sidebar-panel-toggle .icon-show { display: none; }
+        .sidebar-panel-toggle .icon-hide { display: block; }
+        html[data-sidebar="collapsed"] .sidebar-panel-toggle .icon-show { display: block; }
+        html[data-sidebar="collapsed"] .sidebar-panel-toggle .icon-hide { display: none; }
+        html[data-theme="light"] .sidebar-panel-toggle {
+            background: #F1F5F9;
+            color: #0F766E;
+            border-color: rgba(15, 118, 110, 0.28);
+        }
+
         .top-navbar {
             position: fixed;
             top: 0;
@@ -406,6 +442,22 @@
             padding: 1.05rem 0.85rem 1rem;
             z-index: 90;
             overflow: hidden;
+            transition: transform 0.32s ease, opacity 0.25s ease, width 0.32s ease, padding 0.32s ease, border-color 0.32s ease;
+        }
+
+        html[data-sidebar="collapsed"] {
+            --sidebar-width: 0px;
+        }
+
+        html[data-sidebar="collapsed"] .sidebar {
+            transform: translateX(-100%);
+            opacity: 0;
+            pointer-events: none;
+            width: 0;
+            padding-left: 0;
+            padding-right: 0;
+            border-right-color: transparent;
+            box-shadow: none;
         }
 
         .sidebar-top {
@@ -839,6 +891,7 @@
             margin-left: var(--sidebar-width);
             padding: 1rem 1.5rem 1.5rem;
             min-height: calc(100vh - var(--navbar-height));
+            transition: margin-left 0.32s ease;
         }
 
         .content-panel {
@@ -970,6 +1023,10 @@
         }
 
         @media (max-width: 640px) {
+            html[data-sidebar="collapsed"] .sidebar {
+                display: none;
+            }
+
             .sidebar {
                 width: 100%;
                 height: auto;
@@ -978,6 +1035,8 @@
                 border-right: none;
                 border-bottom: 1px solid rgba(94, 200, 179, 0.2);
                 overflow: visible;
+                transform: none;
+                opacity: 1;
             }
 
             .sidebar-scroll {
@@ -1316,6 +1375,18 @@
             $userStatut = \App\Support\AppMenus::statutLabel($authUser->statut);
         @endphp
         <div class="navbar-actions">
+            <button type="button" class="sidebar-panel-toggle" id="sidebarPanelToggle" title="Masquer le menu" aria-label="Masquer le menu latéral" aria-pressed="false">
+                <svg class="icon-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <path d="M9 3v18"/>
+                    <path d="M14 9l3 3-3 3"/>
+                </svg>
+                <svg class="icon-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <path d="M9 3v18"/>
+                    <path d="M13 9l-3 3 3 3"/>
+                </svg>
+            </button>
             <button type="button" class="theme-toggle" id="themeToggle" title="Mode clair / sombre" aria-label="Basculer mode clair ou sombre">
                 <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3 7 7 0 0 0 21 14.5z"/>
@@ -1433,6 +1504,36 @@
                     applyTheme(currentTheme() === 'light' ? 'dark' : 'light');
                 });
                 applyTheme(currentTheme());
+            }
+
+            var SIDEBAR_KEY = 'damiorif-sidebar';
+            var sidebarBtn = document.getElementById('sidebarPanelToggle');
+
+            function sidebarCollapsed() {
+                return document.documentElement.getAttribute('data-sidebar') === 'collapsed';
+            }
+
+            function applySidebar(collapsed) {
+                if (collapsed) {
+                    document.documentElement.setAttribute('data-sidebar', 'collapsed');
+                } else {
+                    document.documentElement.removeAttribute('data-sidebar');
+                }
+                try {
+                    localStorage.setItem(SIDEBAR_KEY, collapsed ? 'collapsed' : 'open');
+                } catch (e) {}
+                if (sidebarBtn) {
+                    sidebarBtn.setAttribute('aria-pressed', collapsed ? 'true' : 'false');
+                    sidebarBtn.title = collapsed ? 'Afficher le menu' : 'Masquer le menu';
+                    sidebarBtn.setAttribute('aria-label', collapsed ? 'Afficher le menu latéral' : 'Masquer le menu latéral');
+                }
+            }
+
+            if (sidebarBtn) {
+                sidebarBtn.addEventListener('click', function () {
+                    applySidebar(!sidebarCollapsed());
+                });
+                applySidebar(sidebarCollapsed());
             }
 
             var STORAGE_KEY = 'damiorif_sidebar_open';
