@@ -24,6 +24,18 @@
         td { color: #333; }
         tbody tr:nth-child(even) td { background: #faf6eb; }
         .amt { text-align: right; }
+        th.col-op, td.col-op {
+            width: 1%;
+            max-width: 28px;
+            padding: 4px 2px !important;
+            font-size: 8px !important;
+        }
+        th.col-stat, td.col-stat {
+            width: 1%;
+            max-width: 42px;
+            padding: 4px 3px !important;
+            font-size: 8px !important;
+        }
         .toolbar { margin-bottom: 16px; display: flex; gap: 10px; }
         .btn { padding: 8px 14px; border-radius: 6px; border: 1px solid #2A9B86; background: #5EC8B3; color: #2d0006; font-weight: 700; cursor: pointer; text-decoration: none; font-size: 12px; }
         .btn-ghost { background: #fff; color: #54000b; border-color: #d9c48a; }
@@ -72,7 +84,7 @@
     <table>
         <thead>
             <tr>
-                <th>Opération</th>
+                <th class="col-op">Op.</th>
                 <th>Date</th>
                 <th>N° Bon</th>
                 <th>{{ $tiersLabel }}</th>
@@ -82,16 +94,16 @@
                 <th>Bnq</th>
                 <th>Tiré</th>
                 <th>Mnt</th>
-                <th>Payé</th>
-                <th>Imp</th>
-                <th>Repo</th>
-                <th>Dévali</th>
+                <th class="col-stat">Payé</th>
+                <th class="col-stat">Imp</th>
+                <th class="col-stat">Rep</th>
+                <th class="col-stat">Dév</th>
             </tr>
         </thead>
         <tbody>
             @forelse ($rows as $row)
                 <tr>
-                    <td>{{ $row['operation'] }}</td>
+                    <td class="col-op">{{ $row['operation'] }}</td>
                     <td>{{ $row['date']?->format('d/m/Y') }}</td>
                     <td>{{ $row['numero_bon'] }}</td>
                     <td>{{ $row['tiers'] }}</td>
@@ -101,10 +113,10 @@
                     <td>{{ $row['banque'] }}</td>
                     <td>{{ $row['tire'] }}</td>
                     <td class="amt">{{ number_format($row['montant'], 2, ',', ' ') }}</td>
-                    <td class="amt">{{ $row['paye'] !== null ? number_format($row['paye'], 2, ',', ' ') : '—' }}</td>
-                    <td class="amt">{{ $row['imp'] !== null ? number_format($row['imp'], 2, ',', ' ') : '—' }}</td>
-                    <td class="amt">{{ $row['repo'] !== null ? number_format($row['repo'], 2, ',', ' ') : '—' }}</td>
-                    <td class="amt">{{ $row['devali'] !== null ? number_format($row['devali'], 2, ',', ' ') : '—' }}</td>
+                    <td class="col-stat amt">{{ $row['paye'] !== null ? number_format($row['paye'], 2, ',', ' ') : '—' }}</td>
+                    <td class="col-stat amt">{{ $row['imp'] !== null ? number_format($row['imp'], 2, ',', ' ') : '—' }}</td>
+                    <td class="col-stat amt">{{ $row['repo'] !== null ? number_format($row['repo'], 2, ',', ' ') : '—' }}</td>
+                    <td class="col-stat amt">{{ $row['devali'] !== null ? number_format($row['devali'], 2, ',', ' ') : '—' }}</td>
                 </tr>
             @empty
                 <tr><td colspan="14">Aucune opération pour ces critères.</td></tr>

@@ -41,7 +41,7 @@ class ReleveCompteService
             $paye = round($montant - (float) $bon->solde, 2);
 
             $rows->push([
-                'operation' => 'Bon Achat',
+                'operation' => 'Ach.',
                 'date' => $bon->date_bon,
                 'numero_bon' => $bon->numero_bon,
                 'tiers' => $bon->nom_fournisseur,
@@ -63,7 +63,7 @@ class ReleveCompteService
             $statutCols = self::statutColumns($reg->statut, $montant);
 
             $rows->push([
-                'operation' => 'Règlement',
+                'operation' => 'Rég.',
                 'date' => $reg->date_reglement,
                 'numero_bon' => $reg->lignes->pluck('numero_bon')->filter()->unique()->implode(', ') ?: $reg->numero,
                 'tiers' => $reg->nom_fournisseur,
@@ -127,7 +127,7 @@ class ReleveCompteService
             $paye = round($montant - (float) $bon->solde, 2);
 
             $rows->push([
-                'operation' => 'Bon Vente',
+                'operation' => 'Vte.',
                 'date' => $bon->date_bon,
                 'numero_bon' => $bon->numero_bon,
                 'tiers' => $bon->nom_client,
@@ -149,7 +149,7 @@ class ReleveCompteService
             $statutCols = self::statutColumns($reg->statut, $montant);
 
             $rows->push([
-                'operation' => 'Règlement',
+                'operation' => 'Rég.',
                 'date' => $reg->date_reglement,
                 'numero_bon' => $reg->lignes->pluck('numero_bon')->filter()->unique()->implode(', ') ?: $reg->numero,
                 'tiers' => $reg->nom_client,

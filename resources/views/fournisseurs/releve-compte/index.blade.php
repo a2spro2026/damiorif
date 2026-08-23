@@ -15,12 +15,7 @@
     .filter-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:.65rem; margin-bottom:.85rem; }
     .filter-bar select { width:100%; padding:.6rem .75rem; border-radius:10px; border:1px solid rgba(94,200,179,.3); font-family:inherit; font-size:.85rem; outline:none; }
     .table-wrap { overflow-x:auto; border-radius:14px; border:1px solid rgba(94,200,179,.18); background:var(--surface); }
-    .data-table { width:100%; border-collapse:collapse; min-width:1300px; }
-    .data-table th { font-size:.62rem !important; white-space:nowrap; }
-    .data-table td { font-size:.78rem; white-space:nowrap; }
-    .empty-row td { text-align:center; color:var(--text-muted); padding:2rem; }
     .amt { text-align:right; }
-    .op-badge { display:inline-block; padding:.15rem .45rem; border-radius:6px; font-size:.68rem; font-weight:700; background:rgba(94,200,179,.12); color:var(--gold-light); }
 </style>
 
 <div class="content-panel fiche-page">
