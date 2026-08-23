@@ -18,6 +18,7 @@ class UserAccess
             'clients.bon_vente',
             'clients.reglement_vente',
             'clients.balance',
+            'clients.releve_compte',
             'charges.etat_charges',
             'charges.etat_depenses',
         ];

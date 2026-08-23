@@ -17,6 +17,8 @@ use App\Http\Controllers\RapportController;
 use App\Http\Controllers\ReglementAchatController;
 use App\Http\Controllers\ReglementController;
 use App\Http\Controllers\ReglementVenteController;
+use App\Http\Controllers\ReleveCompteClientController;
+use App\Http\Controllers\ReleveCompteFournisseurController;
 use App\Http\Controllers\StockMouvementController;
 use App\Http\Controllers\TresorerieController;
 use App\Http\Controllers\UniteMesureController;
@@ -58,6 +60,8 @@ Route::middleware(['auth', 'access'])->group(function () {
     Route::delete('/fournisseurs/reglement-achat/{reglementAchat}', [ReglementAchatController::class, 'destroy'])->name('fournisseurs.reglement_achat.destroy');
     Route::get('/fournisseurs/reglement-achat/{reglementAchat}/print', [ReglementAchatController::class, 'print'])->name('fournisseurs.reglement_achat.print');
     Route::get('/fournisseurs/balance', [BalanceFournisseurController::class, 'index'])->name('fournisseurs.balance');
+    Route::get('/fournisseurs/releve-compte', [ReleveCompteFournisseurController::class, 'index'])->name('fournisseurs.releve_compte');
+    Route::get('/fournisseurs/releve-compte/print', [ReleveCompteFournisseurController::class, 'print'])->name('fournisseurs.releve_compte.print');
 
     // Stock
     Route::get('/stock/fiche-produit', fn () => redirect()->route('stock.depot_tanger'))->name('stock.fiche_produit');
@@ -88,6 +92,8 @@ Route::middleware(['auth', 'access'])->group(function () {
     Route::delete('/clients/reglement-vente/{reglementVente}', [ReglementVenteController::class, 'destroy'])->name('clients.reglement_vente.destroy');
     Route::get('/clients/reglement-vente/{reglementVente}/print', [ReglementVenteController::class, 'print'])->name('clients.reglement_vente.print');
     Route::get('/clients/balance', [BalanceClientController::class, 'index'])->name('clients.balance');
+    Route::get('/clients/releve-compte', [ReleveCompteClientController::class, 'index'])->name('clients.releve_compte');
+    Route::get('/clients/releve-compte/print', [ReleveCompteClientController::class, 'print'])->name('clients.releve_compte.print');
 
     // Charges
     Route::get('/charges/etat-charges', [ChargeController::class, 'indexCharges'])->name('charges.etat_charges');

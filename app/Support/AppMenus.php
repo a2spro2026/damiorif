@@ -45,6 +45,7 @@ class AppMenus
                     ['key' => 'fournisseurs.bon_achat', 'label' => "Bon D'achat", 'route' => 'fournisseurs.bon_achat', 'icon' => 'cart'],
                     ['key' => 'fournisseurs.reglement_achat', 'label' => 'Réglement Achat', 'route' => 'fournisseurs.reglement_achat', 'icon' => 'payment'],
                     ['key' => 'fournisseurs.balance', 'label' => 'Balance Fournisseurs', 'route' => 'fournisseurs.balance', 'icon' => 'balance'],
+                    ['key' => 'fournisseurs.releve_compte', 'label' => 'Relevé Compte', 'route' => 'fournisseurs.releve_compte', 'icon' => 'report'],
                 ],
             ],
             'clients' => [
@@ -55,6 +56,7 @@ class AppMenus
                     ['key' => 'clients.bon_vente', 'label' => 'Bon Vente', 'route' => 'clients.bon_vente', 'icon' => 'receipt'],
                     ['key' => 'clients.reglement_vente', 'label' => 'Réglement Vente', 'route' => 'clients.reglement_vente', 'icon' => 'payment'],
                     ['key' => 'clients.balance', 'label' => 'Balance Clients', 'route' => 'clients.balance', 'icon' => 'balance'],
+                    ['key' => 'clients.releve_compte', 'label' => 'Relevé Compte', 'route' => 'clients.releve_compte', 'icon' => 'report'],
                 ],
             ],
             'stock' => [
