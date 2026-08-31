@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BonVente;
 use App\Models\Client;
 use App\Support\Echeances;
+use App\Support\StockDepotService;
 use App\Support\TypesReglement;
 use App\Support\UserAccess;
 use Illuminate\Http\RedirectResponse;
@@ -29,11 +30,18 @@ class BonVenteController extends Controller
         $totalVentes = round((float) $bons->sum('montant'), 2);
         $totalSolde = round((float) $bons->sum('solde'), 2);
 
+        $depotOptions = UserAccess::depotOptionsFor($user);
+        $stockByDepot = [];
+        foreach (array_keys($depotOptions) as $depot) {
+            $stockByDepot[$depot] = StockDepotService::stockMapForDepot($depot);
+        }
+
         return view('clients.bon-vente.index', [
             'bons' => $bons,
             'clients' => Client::query()->forUser($user)->orderBy('nom_client')->get(['id', 'ref_client', 'nom_client', 'ville', 'type_reglement']),
             'typesReglement' => TypesReglement::options(),
-            'depots' => UserAccess::depotOptionsFor($user),
+            'depots' => $depotOptions,
+            'stockByDepot' => $stockByDepot,
             'lockedDepot' => $depotKey,
             'echeances' => Echeances::options(),
             'nextNumero' => BonVente::nextNumero(),
@@ -48,6 +56,7 @@ class BonVenteController extends Controller
         $data = $this->validated($request);
         $client = Client::query()->findOrFail($data['client_id']);
         $this->assertClientAccess($client);
+        $this->assertStockAvailable($data['depot'] ?? '', $data['lignes']);
 
         DB::transaction(function () use ($data, $client) {
             $totaux = $this->computeTotaux($data['lignes']);
@@ -88,6 +97,7 @@ class BonVenteController extends Controller
         $data = $this->validated($request);
         $client = Client::query()->findOrFail($data['client_id']);
         $this->assertClientAccess($client);
+        $this->assertStockAvailable($data['depot'] ?? '', $data['lignes'], $bonVente->id);
 
         DB::transaction(function () use ($data, $client, $bonVente) {
             $totaux = $this->computeTotaux($data['lignes']);
@@ -191,6 +201,14 @@ class BonVenteController extends Controller
         $depotKey = UserAccess::depotKey($user);
         if ($depotKey && ($client->depot !== $depotKey || (int) $client->user_id !== (int) $user->id)) {
             abort(403, 'Ce client n\'appartient pas à votre dépôt.');
+        }
+    }
+
+    private function assertStockAvailable(string $depotKey, array $lignes, ?int $excludeBonVenteId = null): void
+    {
+        $errors = StockDepotService::saleStockErrors($depotKey, $lignes, $excludeBonVenteId);
+        if ($errors !== []) {
+            throw \Illuminate\Validation\ValidationException::withMessages($errors);
         }
     }
 

@@ -36,7 +36,7 @@ class DepotStockController extends Controller
         }
 
         $depotOptions ??= UserAccess::depotOptionsFor($user);
-        $stockRows = StockDepotService::stockForDepot($depot);
+        $stockRows = StockDepotService::detailForDepot($depot);
 
         return view('stock.depot.index', [
             'depot' => $depot,

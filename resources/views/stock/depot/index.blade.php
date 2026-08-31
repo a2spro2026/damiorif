@@ -12,7 +12,7 @@
     .btn-ghost { background:rgba(0,0,0,.25); color:var(--gold-light); border-color:rgba(94,200,179,.35); }
     .filter-bar select { padding:.6rem .75rem; border-radius:10px; border:1px solid rgba(94,200,179,.3); background:var(--bg-input); color:var(--text); font-family:inherit; font-size:.85rem; }
     .table-wrap { overflow-x:auto; border-radius:14px; border:1px solid rgba(94,200,179,.18); background:var(--surface); }
-    .data-table { width:100%; border-collapse:collapse; min-width:520px; }
+    .data-table { width:100%; border-collapse:collapse; min-width:640px; }
     .empty-row td { text-align:center; color:var(--text-muted); padding:2rem; }
     .qte-pos { color:#bbf7d0; font-weight:700; }
     .qte-neg { color:#fecaca; font-weight:700; }
@@ -41,7 +41,8 @@
                 <tr>
                     <th>Réf</th>
                     <th>Désignation</th>
-                    <th>Qté Actuelle</th>
+                    <th>Qté sortie</th>
+                    <th>Stock actuel</th>
                 </tr>
             </thead>
             <tbody>
@@ -49,12 +50,13 @@
                     <tr>
                         <td>{{ $row['ref'] }}</td>
                         <td>{{ $row['designation'] }}</td>
-                        <td class="{{ $row['qte'] > 0 ? 'qte-pos' : ($row['qte'] < 0 ? 'qte-neg' : '') }}">
-                            {{ number_format($row['qte'], 2, ',', ' ') }}
+                        <td>{{ number_format($row['qte_sortie'], 2, ',', ' ') }}</td>
+                        <td class="{{ $row['stock_actuel'] > 0 ? 'qte-pos' : ($row['stock_actuel'] < 0 ? 'qte-neg' : '') }}">
+                            {{ number_format($row['stock_actuel'], 2, ',', ' ') }}
                         </td>
                     </tr>
                 @empty
-                    <tr class="empty-row"><td colspan="3">Aucun stock pour ce dépôt.</td></tr>
+                    <tr class="empty-row"><td colspan="4">Aucun stock pour ce dépôt.</td></tr>
                 @endforelse
             </tbody>
         </table>

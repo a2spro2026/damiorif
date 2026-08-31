@@ -6,6 +6,7 @@ use App\Models\BonAchat;
 use App\Models\Fournisseur;
 use App\Support\Depots;
 use App\Support\Echeances;
+use App\Support\ProduitReferenceService;
 use App\Support\TypesReglement;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,6 +32,7 @@ class BonAchatController extends Controller
             'totalAchats' => $totalAchats,
             'totalPaiement' => round($totalAchats - $totalSolde, 2),
             'totalSolde' => $totalSolde,
+            'references' => ProduitReferenceService::catalogue(),
         ]);
     }
 
@@ -67,6 +69,8 @@ class BonAchatController extends Controller
                     'sous_total' => round(((float) $ligne['qte']) * ((float) $ligne['prix_unitaire']), 2),
                 ]);
             }
+
+            ProduitReferenceService::syncFromBonAchatLignes($data['lignes']);
         });
 
         return redirect()->route('fournisseurs.bon_achat');
@@ -108,6 +112,8 @@ class BonAchatController extends Controller
                     'sous_total' => round(((float) $ligne['qte']) * ((float) $ligne['prix_unitaire']), 2),
                 ]);
             }
+
+            ProduitReferenceService::syncFromBonAchatLignes($data['lignes']);
         });
 
         return redirect()->route('fournisseurs.bon_achat');

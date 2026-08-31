@@ -163,6 +163,16 @@
         <form method="POST" id="baForm">
             @csrf
             <input type="hidden" name="_method" id="formMethod" value="POST">
+            <datalist id="refCatalogue">
+                @foreach ($references as $ref)
+                    <option value="{{ $ref['ref'] }}">{{ $ref['designation'] }}</option>
+                @endforeach
+            </datalist>
+            <datalist id="desCatalogue">
+                @foreach ($references as $ref)
+                    <option value="{{ $ref['designation'] }}">{{ $ref['ref'] }}</option>
+                @endforeach
+            </datalist>
 
             <div class="form-grid">
                 <div class="form-row form-row-date">
@@ -277,6 +287,7 @@
     const updateBase = @json(url('/fournisseurs/bon-achat'));
     const nextNumero = @json($nextNumero);
     const today = @json(now()->format('Y-m-d'));
+    const references = @json($references);
     let lineIndex = 0;
     let readonlyMode = false;
 
@@ -300,8 +311,8 @@
         const tr = document.createElement('tr');
         tr.dataset.index = i;
         tr.innerHTML = `
-            <td><input type="text" name="lignes[${i}][ref]" value="${data.ref || ''}" ${readonlyMode ? 'disabled' : ''}></td>
-            <td><input type="text" name="lignes[${i}][designation]" value="${data.designation || ''}" required ${readonlyMode ? 'disabled' : ''}></td>
+            <td><input type="text" class="js-ref" name="lignes[${i}][ref]" list="refCatalogue" value="${data.ref || ''}" ${readonlyMode ? 'disabled' : ''}></td>
+            <td><input type="text" class="js-designation" name="lignes[${i}][designation]" list="desCatalogue" value="${data.designation || ''}" required ${readonlyMode ? 'disabled' : ''}></td>
             <td><input type="text" name="lignes[${i}][famille]" value="${data.famille || ''}" ${readonlyMode ? 'disabled' : ''}></td>
             <td><input type="text" name="lignes[${i}][categorie]" value="${data.categorie || ''}" ${readonlyMode ? 'disabled' : ''}></td>
             <td><input type="number" step="0.01" min="0.01" class="js-qte" name="lignes[${i}][qte]" value="${data.qte || 1}" required ${readonlyMode ? 'disabled' : ''}></td>
@@ -310,8 +321,34 @@
             <td>${readonlyMode ? '' : `<button type="button" class="icon-btn danger" title="Retirer" onclick="removeLine(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>`}</td>
         `;
         linesBody.appendChild(tr);
+        const refInput = tr.querySelector('.js-ref');
+        const desInput = tr.querySelector('.js-designation');
+        if (!readonlyMode) {
+            refInput?.addEventListener('change', () => applyReferenceFromRef(tr));
+            refInput?.addEventListener('blur', () => applyReferenceFromRef(tr));
+            desInput?.addEventListener('change', () => applyReferenceFromDesignation(tr));
+            desInput?.addEventListener('blur', () => applyReferenceFromDesignation(tr));
+        }
         tr.querySelectorAll('.js-qte, .js-pu').forEach(el => el.addEventListener('input', () => recalcLine(tr)));
         recalcTotals();
+    }
+
+    function applyReferenceFromRef(tr) {
+        const ref = (tr.querySelector('.js-ref')?.value || '').trim();
+        if (!ref) return;
+        const hit = references.find(r => r.ref.toLowerCase() === ref.toLowerCase());
+        if (hit) {
+            tr.querySelector('.js-designation').value = hit.designation;
+        }
+    }
+
+    function applyReferenceFromDesignation(tr) {
+        const designation = (tr.querySelector('.js-designation')?.value || '').trim();
+        if (!designation) return;
+        const hit = references.find(r => r.designation.toLowerCase() === designation.toLowerCase());
+        if (hit && !tr.querySelector('.js-ref').value.trim()) {
+            tr.querySelector('.js-ref').value = hit.ref;
+        }
     }
 
     function removeLine(btn) {

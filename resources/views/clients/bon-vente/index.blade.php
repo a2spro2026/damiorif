@@ -41,7 +41,9 @@
     .lines-table .col-des { width:auto; }
     .lines-table .col-sm { width:100px; }
     .lines-table .col-num { width:85px; }
-    .lines-table .col-act { width:42px; }
+    .lines-table .col-stock { width:72px; text-align:center; }
+    .lines-table .stock-zero { color:#ff9a9a; font-weight:700; font-size:.78rem; }
+    .lines-table tr.row-no-stock input.js-qte { opacity:.5; pointer-events:none; }
     .lines-table input { width:100%; padding:.45rem .5rem; border-radius:8px; border:1px solid rgba(94,200,179,.25); background:var(--bg-input); color:var(--text); font-size:.82rem; font-family:inherit; }
     .totals-bar { display:flex; justify-content:flex-end; gap:1.5rem; margin-top:.85rem; padding-top:.75rem; border-top:1px solid rgba(94,200,179,.18); color:var(--gold-light); font-weight:700; }
     .modal-footer { display:flex; justify-content:flex-end; gap:.65rem; margin-top:1.1rem; padding-top:1rem; border-top:1px solid rgba(94,200,179,.18); }
@@ -249,6 +251,7 @@
                             <th class="col-des">Désignation</th>
                             <th class="col-sm">Famille</th>
                             <th class="col-sm">Catégorie</th>
+                            <th class="col-stock">Stock</th>
                             <th class="col-num">Qte</th>
                             <th class="col-num">P/U</th>
                             <th class="col-num">Sous-Total</th>
@@ -281,8 +284,10 @@
     const nextNumero = @json($nextNumero);
     const today = @json(now()->format('Y-m-d'));
     const lockedDepot = @json($lockedDepot ?? null);
+    const stockByDepot = @json($stockByDepot);
     let lineIndex = 0;
     let readonlyMode = false;
+    let stockAdjustment = {};
 
     function openModal() { modal.classList.add('open'); }
     function closeModal() {
@@ -299,22 +304,114 @@
         }
     }
 
+    function productKey(ref, designation) {
+        ref = (ref || '').trim();
+        if (ref && ref !== '—') return 'r:' + ref.toLowerCase();
+        return 'd:' + (designation || '').trim().toLowerCase();
+    }
+
+    function getActiveDepot() {
+        return lockedDepot || document.getElementById('field_depot')?.value || '';
+    }
+
+    function availableStock(ref, designation) {
+        const depot = getActiveDepot();
+        if (!depot) return 0;
+        const key = productKey(ref, designation);
+        return availableStockByKey(key);
+    }
+
+    function availableStockByKey(key) {
+        const depot = getActiveDepot();
+        if (!depot) return 0;
+        const map = stockByDepot[depot] || {};
+        return (map[key] ?? 0) + (stockAdjustment[key] ?? 0);
+    }
+
+    function refreshLineStock(tr) {
+        const ref = tr.querySelector('[name*="[ref]"]')?.value || '';
+        const designation = tr.querySelector('[name*="[designation]"]')?.value || '';
+        const stockEl = tr.querySelector('.js-stock');
+        const qteInput = tr.querySelector('.js-qte');
+        if (!stockEl || !qteInput) return;
+
+        const stock = availableStock(ref, designation);
+        const hasProduct = (ref.trim() !== '' || designation.trim() !== '');
+        stockEl.textContent = hasProduct ? formatMoney(stock) : '—';
+        stockEl.classList.toggle('stock-zero', hasProduct && stock <= 0.0005);
+
+        if (!readonlyMode && hasProduct) {
+            if (stock <= 0.0005) {
+                tr.classList.add('row-no-stock');
+                qteInput.readOnly = true;
+                qteInput.removeAttribute('required');
+                qteInput.value = '';
+            } else {
+                tr.classList.remove('row-no-stock');
+                qteInput.readOnly = false;
+                qteInput.setAttribute('required', 'required');
+                qteInput.max = stock;
+                const qte = parseFloat(qteInput.value) || 0;
+                if (qte > stock) qteInput.value = stock;
+                if (!qteInput.value) qteInput.value = Math.min(1, stock);
+            }
+        }
+        recalcLine(tr);
+    }
+
+    function refreshAllLineStocks() {
+        linesBody.querySelectorAll('tr').forEach(refreshLineStock);
+    }
+
+    function validateStockBeforeSubmit() {
+        const depot = getActiveDepot();
+        if (!depot) return 'Sélectionnez un dépôt.';
+
+        const requested = {};
+        for (const tr of linesBody.querySelectorAll('tr')) {
+            const ref = tr.querySelector('[name*="[ref]"]')?.value || '';
+            const designation = (tr.querySelector('[name*="[designation]"]')?.value || '').trim();
+            if (!designation) continue;
+            const qte = parseFloat(tr.querySelector('.js-qte')?.value) || 0;
+            const key = productKey(ref, designation);
+            requested[key] = (requested[key] || 0) + qte;
+        }
+
+        for (const key in requested) {
+            const available = availableStockByKey(key);
+            if (available <= 0.0005) {
+                return 'Impossible de vendre un article en rupture de stock (stock = 0).';
+            }
+            if (requested[key] > available + 0.0005) {
+                return 'La quantité demandée dépasse le stock disponible.';
+            }
+        }
+
+        return '';
+    }
+
     function addLine(data = {}) {
         const i = lineIndex++;
         const tr = document.createElement('tr');
         tr.dataset.index = i;
         tr.innerHTML = `
-            <td><input type="text" name="lignes[${i}][ref]" value="${data.ref || ''}" ${readonlyMode ? 'disabled' : ''}></td>
-            <td><input type="text" name="lignes[${i}][designation]" value="${data.designation || ''}" required ${readonlyMode ? 'disabled' : ''}></td>
+            <td><input type="text" class="js-ref" name="lignes[${i}][ref]" value="${data.ref || ''}" ${readonlyMode ? 'disabled' : ''}></td>
+            <td><input type="text" class="js-designation" name="lignes[${i}][designation]" value="${data.designation || ''}" required ${readonlyMode ? 'disabled' : ''}></td>
             <td><input type="text" name="lignes[${i}][famille]" value="${data.famille || ''}" ${readonlyMode ? 'disabled' : ''}></td>
             <td><input type="text" name="lignes[${i}][categorie]" value="${data.categorie || ''}" ${readonlyMode ? 'disabled' : ''}></td>
+            <td class="js-stock stock-zero">—</td>
             <td><input type="number" step="0.01" min="0.01" class="js-qte" name="lignes[${i}][qte]" value="${data.qte || 1}" required ${readonlyMode ? 'disabled' : ''}></td>
             <td><input type="number" step="0.01" min="0" class="js-pu" name="lignes[${i}][prix_unitaire]" value="${data.prix_unitaire || 0}" required ${readonlyMode ? 'disabled' : ''}></td>
             <td><input type="text" class="js-st" value="${formatMoney((data.qte || 1) * (data.prix_unitaire || 0))}" readonly></td>
             <td>${readonlyMode ? '' : `<button type="button" class="icon-btn danger" title="Retirer" onclick="removeLine(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>`}</td>
         `;
         linesBody.appendChild(tr);
+        if (!readonlyMode) {
+            tr.querySelector('.js-ref')?.addEventListener('input', () => refreshLineStock(tr));
+            tr.querySelector('.js-designation')?.addEventListener('input', () => refreshLineStock(tr));
+        }
         tr.querySelectorAll('.js-qte, .js-pu').forEach(el => el.addEventListener('input', () => recalcLine(tr)));
+        refreshLineStock(tr);
         recalcTotals();
     }
 
@@ -380,6 +477,7 @@
         document.getElementById('modalTitle').textContent = "Ajouter un bon de vente";
         form.action = storeUrl;
         document.getElementById('formMethod').value = 'POST';
+        stockAdjustment = {};
         document.getElementById('field_date').value = today;
         document.getElementById('field_numero').value = nextNumero;
         document.getElementById('field_client_id').value = '';
@@ -418,6 +516,11 @@
         document.getElementById('modalTitle').textContent = "Modifier bon de vente";
         form.action = updateBase + '/' + bon.id;
         document.getElementById('formMethod').value = 'PUT';
+        stockAdjustment = {};
+        (bon.lignes || []).forEach(l => {
+            const key = productKey(l.ref, l.designation);
+            stockAdjustment[key] = (stockAdjustment[key] || 0) + (parseFloat(l.qte) || 0);
+        });
         setFormReadonly(false);
         fillForm(bon);
         openModal();
@@ -432,6 +535,17 @@
     }
 
     modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+    document.getElementById('field_depot')?.addEventListener('change', refreshAllLineStocks);
+
+    form.addEventListener('submit', e => {
+        if (readonlyMode) return;
+        const err = validateStockBeforeSubmit();
+        if (err) {
+            e.preventDefault();
+            alert(err);
+        }
+    });
 
     damioBindTableFilters('tableBons', {
         onChange: function (_visible, sums) {
