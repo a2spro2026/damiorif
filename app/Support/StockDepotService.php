@@ -12,7 +12,7 @@ class StockDepotService
     /**
      * Détail stock par produit : sorties cumulées et stock actuel.
      *
-     * @return Collection<int, array{ref: string, designation: string, qte_sortie: float, stock_actuel: float}>
+     * @return Collection<int, array{ref: string, designation: string, qte_actuelle: float, qte_sortie: float, qte_en_stock: float}>
      */
     public static function detailForDepot(string $depotKey, ?int $excludeBonVenteId = null): Collection
     {
@@ -72,10 +72,11 @@ class StockDepotService
             ->map(fn (array $row) => [
                 'ref' => $row['ref'],
                 'designation' => $row['designation'],
+                'qte_actuelle' => round($row['qte_actuelle'], 3),
                 'qte_sortie' => round($row['qte_sortie'], 3),
-                'stock_actuel' => round($row['stock_actuel'], 3),
+                'qte_en_stock' => round($row['qte_en_stock'], 3),
             ])
-            ->filter(fn (array $row) => $row['qte_sortie'] > 0.0005 || abs($row['stock_actuel']) > 0.0005)
+            ->filter(fn (array $row) => $row['qte_actuelle'] > 0.0005 || $row['qte_sortie'] > 0.0005 || abs($row['qte_en_stock']) > 0.0005)
             ->sortBy(fn (array $row) => mb_strtolower($row['ref'].' '.$row['designation']))
             ->values();
     }
@@ -91,7 +92,7 @@ class StockDepotService
             ->map(fn (array $row) => [
                 'ref' => $row['ref'],
                 'designation' => $row['designation'],
-                'qte' => $row['stock_actuel'],
+                'qte' => $row['qte_en_stock'],
             ]);
     }
 
@@ -106,7 +107,7 @@ class StockDepotService
 
         foreach (self::detailForDepot($depotKey, $excludeBonVenteId) as $row) {
             $ref = $row['ref'] === '—' ? null : $row['ref'];
-            $map[self::productKey($ref, $row['designation'])] = (float) $row['stock_actuel'];
+            $map[self::productKey($ref, $row['designation'])] = (float) $row['qte_en_stock'];
         }
 
         return $map;
@@ -157,7 +158,7 @@ class StockDepotService
     }
 
     /**
-     * @param  array<string, array{ref: string, designation: string, stock_actuel: float, qte_sortie: float}>  $items
+     * @param  array<string, array{ref: string, designation: string, qte_actuelle: float, qte_sortie: float, qte_en_stock: float}>  $items
      */
     private static function applyStockDelta(array &$items, ?string $ref, ?string $designation, float $stockDelta, float $sortieDelta): void
     {
@@ -172,12 +173,17 @@ class StockDepotService
             $items[$key] = [
                 'ref' => self::displayRef($ref),
                 'designation' => $designation,
-                'stock_actuel' => 0.0,
+                'qte_actuelle' => 0.0,
                 'qte_sortie' => 0.0,
+                'qte_en_stock' => 0.0,
             ];
         }
 
-        $items[$key]['stock_actuel'] += $stockDelta;
+        if ($stockDelta > 0) {
+            $items[$key]['qte_actuelle'] += $stockDelta;
+        }
+
+        $items[$key]['qte_en_stock'] += $stockDelta;
         $items[$key]['qte_sortie'] += $sortieDelta;
     }
 
