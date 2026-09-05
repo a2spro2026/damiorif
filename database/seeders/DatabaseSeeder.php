@@ -19,8 +19,8 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Abdelilah',
                 'email' => 'abdelilah@damiorif.ma',
-                'password' => Hash::make('password'),
-                'mot_de_passe' => 'password',
+                'password' => Hash::make('0661755048'),
+                'mot_de_passe' => '0661755048',
                 'statut' => 'directeur',
                 'autorisations' => AppMenus::allPermissionKeys(),
             ]
@@ -33,8 +33,8 @@ class DatabaseSeeder extends Seeder
                     'name' => 'Yahya',
                     'contact' => '0661755048',
                     'email' => 'yahya@damiorif.local',
-                    'password' => Hash::make('password'),
-                    'mot_de_passe' => 'password',
+                    'password' => Hash::make('0661755048'),
+                    'mot_de_passe' => '0661755048',
                     'statut' => 'directeur',
                     'autorisations' => AppMenus::allPermissionKeys(),
                 ]

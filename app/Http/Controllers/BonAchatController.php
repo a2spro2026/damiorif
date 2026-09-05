@@ -26,7 +26,7 @@ class BonAchatController extends Controller
             'bons' => $bons,
             'fournisseurs' => Fournisseur::query()->orderBy('nom_fournisseur')->get(['id', 'ref_frns', 'nom_fournisseur', 'ville', 'type_reglement']),
             'typesReglement' => TypesReglement::options(),
-            'depots' => Depots::options(),
+            'depots' => Depots::operationalOptions(),
             'echeances' => Echeances::options(),
             'nextNumero' => BonAchat::nextNumero(),
             'totalAchats' => $totalAchats,
@@ -133,7 +133,7 @@ class BonAchatController extends Controller
         return view('fournisseurs.bon-achat.print', [
             'bon' => $bonAchat,
             'typesReglement' => TypesReglement::options(),
-            'depots' => Depots::options(),
+            'depots' => Depots::operationalOptions(),
         ]);
     }
 
@@ -144,7 +144,7 @@ class BonAchatController extends Controller
             'fournisseur_id' => ['required', 'exists:fournisseurs,id'],
             'type_reglement' => ['nullable', 'string', Rule::in(array_keys(TypesReglement::options()))],
             'echeance' => ['nullable', 'string', Rule::in(array_keys(Echeances::options()))],
-            'depot' => ['nullable', 'string', Rule::in(array_keys(Depots::options()))],
+            'depot' => ['nullable', 'string', Rule::in(array_keys(Depots::operationalOptions()))],
             'lignes' => ['required', 'array', 'min:1'],
             'lignes.*.ref' => ['nullable', 'string', 'max:100'],
             'lignes.*.designation' => ['required', 'string', 'max:255'],

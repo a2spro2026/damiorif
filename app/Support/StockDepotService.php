@@ -57,6 +57,10 @@ class StockDepotService
                         self::applyStockDelta($items, $ref, $designation, $qty, 0.0);
                     } elseif ($mvt->type === 'sortie' && $mvt->depot === $depotKey) {
                         self::applyStockDelta($items, $ref, $designation, -$qty, $qty);
+                    } elseif ($mvt->type === 'ajustement' && $mvt->depot === $depotKey) {
+                        // quantite signée : + augmente, − diminue
+                        $sortie = $qty < 0 ? abs($qty) : 0.0;
+                        self::applyStockDelta($items, $ref, $designation, $qty, $sortie);
                     } elseif ($mvt->type === 'transfert') {
                         if ($mvt->depot === $depotKey) {
                             self::applyStockDelta($items, $ref, $designation, -$qty, $qty);

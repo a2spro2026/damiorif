@@ -9,6 +9,7 @@
     .page-toolbar h2 { font-family:'Fraunces', serif; font-size:1.35rem; color:var(--gold); }
     .toolbar-actions { display:flex; gap:.65rem; flex-wrap:wrap; align-items:center; }
     .btn { display:inline-flex; align-items:center; gap:.45rem; padding:.65rem 1.15rem; border-radius:10px; font-family:inherit; font-size:.88rem; font-weight:700; cursor:pointer; border:1px solid transparent; text-decoration:none; }
+    .btn-gold { background:linear-gradient(135deg,#7DD3C0,#5EC8B3 50%,#2A9B86); color:var(--burgundy-deep); box-shadow:0 4px 16px rgba(94,200,179,.3); }
     .btn-ghost { background:rgba(0,0,0,.25); color:var(--gold-light); border-color:rgba(94,200,179,.35); }
     .filter-bar select { padding:.6rem .75rem; border-radius:10px; border:1px solid rgba(94,200,179,.3); background:var(--bg-input); color:var(--text); font-family:inherit; font-size:.85rem; }
     .table-wrap { overflow-x:auto; border-radius:14px; border:1px solid rgba(94,200,179,.18); background:var(--surface); }
@@ -30,6 +31,9 @@
                         @endforeach
                     </select>
                 </form>
+            @endif
+            @if (!empty($canAdjust))
+                <a href="{{ route('stock.ajuster', ['depot' => $depot]) }}" class="btn btn-gold">Ajuster</a>
             @endif
             <a href="{{ route('dashboard') }}" class="btn btn-ghost">Fermer</a>
         </div>

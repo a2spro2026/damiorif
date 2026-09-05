@@ -40,4 +40,32 @@ class StockMouvement extends Model
 
         return 'MS-'.str_pad((string) $n, 4, '0', STR_PAD_LEFT);
     }
+
+    public static function nextRetourNumero(): string
+    {
+        $last = static::query()
+            ->where('numero', 'like', 'RT-%')
+            ->orderByDesc('id')
+            ->value('numero');
+        $n = 1;
+        if (is_string($last) && preg_match('/RT-(\d+)/', $last, $m)) {
+            $n = ((int) $m[1]) + 1;
+        }
+
+        return 'RT-'.str_pad((string) $n, 4, '0', STR_PAD_LEFT);
+    }
+
+    public static function nextAjustementNumero(): string
+    {
+        $last = static::query()
+            ->where('numero', 'like', 'AJ-%')
+            ->orderByDesc('id')
+            ->value('numero');
+        $n = 1;
+        if (is_string($last) && preg_match('/AJ-(\d+)/', $last, $m)) {
+            $n = ((int) $m[1]) + 1;
+        }
+
+        return 'AJ-'.str_pad((string) $n, 4, '0', STR_PAD_LEFT);
+    }
 }

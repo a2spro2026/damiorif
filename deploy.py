@@ -16,7 +16,7 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 HOST = "51.255.162.99"
 USER = "ubuntu"
-PW = os.environ.get("VPS_SSH_PASSWORD", "A2sprVps2026!Secure")
+PW = os.environ.get("VPS_SSH_PASSWORD", "ZerraguiGhitaNada2970")
 FQDN = "damiorif.a2spr.com"
 SLUG = "damiorif"
 ROOT = f"/var/www/{FQDN}"
@@ -266,7 +266,7 @@ FLUSH PRIVILEGES;
 
     safe_print("\n=== DEPLOY DONE ===")
     safe_print(f"URL: https://{FQDN}")
-    safe_print("Login: abdelilah / password")
+    safe_print("Login: abdelilah / 0661755048")
     safe_print(f"HTTPS probe: {status}")
     c.close()
 

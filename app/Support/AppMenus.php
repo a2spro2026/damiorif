@@ -55,6 +55,9 @@ class AppMenus
                     ['key' => 'stock.depot', 'label' => 'Stock Dépôt', 'route' => 'stock.depot', 'icon' => 'warehouse'],
                     ['key' => 'stock.mouvement', 'label' => 'Mouvement Stock', 'route' => 'stock.mouvement', 'icon' => 'transfer'],
                     ['key' => 'stock.commande_depot', 'label' => 'Commandes Dépôt', 'route' => 'stock.commande_depot', 'icon' => 'cart'],
+                    ['key' => 'stock.alimenter_depot', 'label' => 'Alimenter Dépôt', 'route' => 'stock.alimenter_depot', 'icon' => 'transfer'],
+                    ['key' => 'stock.retour', 'label' => 'Retour', 'route' => 'stock.retour', 'icon' => 'transfer'],
+                    ['key' => 'stock.ajuster', 'label' => 'Ajuster Stock', 'route' => 'stock.ajuster', 'icon' => 'transfer'],
                 ],
             ],
             'clients' => [

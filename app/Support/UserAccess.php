@@ -22,6 +22,7 @@ class UserAccess
             'stock.depot',
             'stock.mouvement',
             'stock.commande_depot',
+            'stock.retour',
             'charges.etat_charges',
             'charges.etat_depenses',
         ];
@@ -153,6 +154,13 @@ class UserAccess
 
         if ($key === null) {
             return $all;
+        }
+
+        if ($key === Depots::centralKey()) {
+            return array_intersect_key($all, array_flip([
+                Depots::centralKey(),
+                Depots::retourKey(),
+            ]));
         }
 
         return [$key => $all[$key]];

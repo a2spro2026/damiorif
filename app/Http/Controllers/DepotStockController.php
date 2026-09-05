@@ -31,12 +31,15 @@ class DepotStockController extends Controller
 
         $user = auth()->user();
         $userDepot = UserAccess::depotKey($user);
-        if ($userDepot && $userDepot !== $depot) {
+        $depotOptions ??= UserAccess::depotOptionsFor($user);
+
+        if ($userDepot && ! array_key_exists($depot, $depotOptions)) {
             abort(403);
         }
 
-        $depotOptions ??= UserAccess::depotOptionsFor($user);
         $stockRows = StockDepotService::detailForDepot($depot);
+        $canAdjust = ! UserAccess::isDepotUser($user)
+            || $userDepot === Depots::centralKey();
 
         return view('stock.depot.index', [
             'depot' => $depot,
@@ -44,6 +47,7 @@ class DepotStockController extends Controller
             'depotOptions' => $depotOptions,
             'stockRows' => $stockRows,
             'lockedDepot' => $userDepot,
+            'canAdjust' => $canAdjust,
         ]);
     }
 }

@@ -22,6 +22,9 @@ use App\Http\Controllers\ReleveCompteClientController;
 use App\Http\Controllers\ReleveCompteFournisseurController;
 use App\Http\Controllers\StockManquesController;
 use App\Http\Controllers\StockMouvementController;
+use App\Http\Controllers\AlimenterDepotController;
+use App\Http\Controllers\RetourDepotController;
+use App\Http\Controllers\AjusterStockController;
 use App\Http\Controllers\TresorerieController;
 use App\Http\Controllers\UniteMesureController;
 use App\Http\Controllers\UtilisateurController;
@@ -85,6 +88,12 @@ Route::middleware(['auth', 'access'])->group(function () {
     Route::patch('/stock/commande-depot/{commande}/expedier', [BonCommandeDepotController::class, 'expedier'])->name('stock.commande_depot.expedier');
     Route::get('/stock/commande-depot/{commande}/print', [BonCommandeDepotController::class, 'print'])->name('stock.commande_depot.print');
     Route::get('/stock/mouvement', [StockMouvementController::class, 'index'])->name('stock.mouvement');
+    Route::get('/stock/alimenter-depot', [AlimenterDepotController::class, 'index'])->name('stock.alimenter_depot');
+    Route::post('/stock/alimenter-depot', [AlimenterDepotController::class, 'store'])->name('stock.alimenter_depot.store');
+    Route::get('/stock/retour', [RetourDepotController::class, 'index'])->name('stock.retour');
+    Route::post('/stock/retour', [RetourDepotController::class, 'store'])->name('stock.retour.store');
+    Route::get('/stock/ajuster', [AjusterStockController::class, 'index'])->name('stock.ajuster');
+    Route::post('/stock/ajuster', [AjusterStockController::class, 'store'])->name('stock.ajuster.store');
 
     // Clients
     Route::get('/clients/fiche', [ClientController::class, 'index'])->name('clients.fiche');
