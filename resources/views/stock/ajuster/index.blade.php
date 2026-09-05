@@ -4,27 +4,45 @@
 
 @section('content')
 <style>
-    .fiche-page { padding:.75rem 1.25rem 1.25rem !important; margin-top:-.5rem; }
+    .fiche-page {
+        padding:.75rem 1.25rem 1.25rem !important;
+        margin-top:-.5rem;
+        display:flex;
+        flex-direction:column;
+        height:calc(100vh - 5.5rem);
+        min-height:420px;
+        overflow:hidden;
+    }
+    .ajuster-top { flex:0 0 auto; }
     .page-toolbar { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:.85rem; flex-wrap:wrap; }
     .page-toolbar h2 { font-family:'Fraunces', serif; font-size:1.35rem; color:var(--gold); }
     .toolbar-actions { display:flex; gap:.65rem; flex-wrap:wrap; align-items:center; }
     .btn { display:inline-flex; align-items:center; gap:.45rem; padding:.65rem 1.15rem; border-radius:10px; font-family:inherit; font-size:.88rem; font-weight:700; cursor:pointer; border:1px solid transparent; text-decoration:none; }
     .btn-gold { background:linear-gradient(135deg,#7DD3C0,#5EC8B3 50%,#2A9B86); color:var(--burgundy-deep); box-shadow:0 4px 16px rgba(94,200,179,.3); }
     .btn-ghost { background:rgba(0,0,0,.25); color:var(--gold-light); border-color:rgba(94,200,179,.35); }
-    .alert-error { background:rgba(140,20,30,.25); border:1px solid rgba(255,100,100,.35); color:#ffb4b4; padding:.75rem 1rem; border-radius:10px; margin-bottom:1rem; font-size:.9rem; }
-    .alert-ok { background:rgba(20,100,60,.25); border:1px solid rgba(100,255,160,.35); color:#b4ffd0; padding:.75rem 1rem; border-radius:10px; margin-bottom:1rem; font-size:.9rem; }
-    .form-panel { border-radius:14px; border:1px solid rgba(94,200,179,.18); background:var(--surface); padding:1.15rem 1.25rem 1.25rem; margin-bottom:1rem; }
-    .form-row { display:grid; gap:.65rem .85rem; align-items:end; margin-bottom:.85rem; }
+    .alert-error { background:rgba(140,20,30,.25); border:1px solid rgba(255,100,100,.35); color:#ffb4b4; padding:.75rem 1rem; border-radius:10px; margin-bottom:.85rem; font-size:.9rem; }
+    .alert-ok { background:rgba(20,100,60,.25); border:1px solid rgba(100,255,160,.35); color:#b4ffd0; padding:.75rem 1rem; border-radius:10px; margin-bottom:.85rem; font-size:.9rem; }
+    .form-panel { border-radius:14px; border:1px solid rgba(94,200,179,.18); background:var(--surface); padding:1rem 1.15rem; margin-bottom:.75rem; }
+    .form-row { display:grid; gap:.55rem .85rem; align-items:end; margin-bottom:.65rem; }
     .form-row-meta { grid-template-columns:160px 160px minmax(200px,1fr); }
-    .form-row-remarque { grid-template-columns:1fr; }
+    .form-row-remarque { grid-template-columns:1fr; margin-bottom:0; }
     .field label { display:block; font-size:.68rem; text-transform:uppercase; letter-spacing:.06em; color:var(--gold-light); margin-bottom:.3rem; font-weight:600; }
     .field input,.field select,.field textarea { width:100%; padding:.55rem .65rem; border-radius:10px; border:1px solid rgba(94,200,179,.3); background:var(--bg-input); color:var(--text); font-family:inherit; font-size:.85rem; outline:none; }
-    .field textarea { min-height:64px; resize:vertical; }
+    .field textarea { min-height:52px; resize:vertical; }
     .field input:focus,.field select:focus,.field textarea:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(94,200,179,.12); }
     .field input[readonly] { opacity:.75; cursor:not-allowed; }
     .field select option { background:#2d0006; }
-    .hint { color:var(--text-muted); font-size:.82rem; margin:0 0 .85rem; }
-    .list-wrap { border-radius:14px; border:1px solid rgba(94,200,179,.18); background:var(--surface); overflow:hidden; }
+    .hint { color:var(--text-muted); font-size:.82rem; margin:.55rem 0 0; }
+    .list-wrap {
+        flex:1 1 auto;
+        min-height:0;
+        border-radius:14px;
+        border:1px solid rgba(94,200,179,.18);
+        background:var(--surface);
+        overflow-y:auto;
+        overflow-x:hidden;
+        -webkit-overflow-scrolling:touch;
+    }
     .stock-list { list-style:none; margin:0; padding:0; }
     .stock-item {
         display:grid;
@@ -52,9 +70,20 @@
     .icon-btn:hover { background:rgba(94,200,179,.18); }
     .icon-btn svg { width:16px; height:16px; }
     .icon-btn.minus:hover { color:#ff9a9a; border-color:rgba(255,100,100,.5); }
-    .form-footer { display:flex; justify-content:flex-end; gap:.65rem; margin-top:1rem; }
+    .form-footer {
+        flex:0 0 auto;
+        display:flex;
+        justify-content:flex-end;
+        gap:.65rem;
+        margin-top:.75rem;
+        padding-top:.75rem;
+        border-top:1px solid rgba(94,200,179,.18);
+        background:var(--surface);
+    }
     .empty-msg { text-align:center; color:var(--text-muted); padding:2rem; }
+    #ajusterForm { display:flex; flex-direction:column; flex:1 1 auto; min-height:0; }
     @media (max-width:720px) {
+        .fiche-page { height:calc(100vh - 4.5rem); }
         .form-row-meta { grid-template-columns:1fr 1fr; }
         .stock-item { grid-template-columns:1fr; gap:.35rem; }
         .qty-box { justify-self:start; }
@@ -65,37 +94,39 @@
 </style>
 
 <div class="content-panel fiche-page">
-    <div class="page-toolbar">
-        <h2>Ajuster Stock</h2>
-        <div class="toolbar-actions">
-            <a href="{{ route('stock.depot', ['depot' => $depot]) }}" class="btn btn-ghost">Stock Dépôt</a>
-            <a href="{{ route('dashboard') }}" class="btn btn-ghost">Fermer</a>
-        </div>
-    </div>
-
-    @if ($errors->any())
-        <div class="alert-error">{{ $errors->first() }}</div>
-    @endif
-    @if (session('success'))
-        <div class="alert-ok">{{ session('success') }}</div>
-    @endif
-
-    <form method="GET" action="{{ route('stock.ajuster') }}" class="form-panel" style="padding-bottom:.85rem; margin-bottom:.85rem;">
-        <div class="form-row form-row-meta" style="margin-bottom:0;">
-            <div class="field">
-                <label for="filter_depot">Dépôt</label>
-                <select name="depot" id="filter_depot" onchange="this.form.submit()">
-                    @foreach ($depots as $key => $label)
-                        <option value="{{ $key }}" @selected($depot === $key)>{{ $label }}</option>
-                    @endforeach
-                </select>
+    <div class="ajuster-top">
+        <div class="page-toolbar">
+            <h2>Ajuster Stock</h2>
+            <div class="toolbar-actions">
+                <a href="{{ route('stock.depot', ['depot' => $depot]) }}" class="btn btn-ghost">Stock Dépôt</a>
+                <a href="{{ route('dashboard') }}" class="btn btn-ghost">Fermer</a>
             </div>
         </div>
-    </form>
+
+        @if ($errors->any())
+            <div class="alert-error">{{ $errors->first() }}</div>
+        @endif
+        @if (session('success'))
+            <div class="alert-ok">{{ session('success') }}</div>
+        @endif
+
+        <form method="GET" action="{{ route('stock.ajuster') }}" class="form-panel" style="padding-bottom:.85rem;">
+            <div class="form-row form-row-meta" style="margin-bottom:0;">
+                <div class="field">
+                    <label for="filter_depot">Dépôt</label>
+                    <select name="depot" id="filter_depot" onchange="this.form.submit()">
+                        @foreach ($depots as $key => $label)
+                            <option value="{{ $key }}" @selected($depot === $key)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
 
     <form method="POST" action="{{ route('stock.ajuster.store') }}" id="ajusterForm">
         @csrf
-        <div class="form-panel">
+        <div class="ajuster-top form-panel">
             <div class="form-row form-row-meta">
                 <div class="field">
                     <label for="field_date">Date</label>
@@ -117,7 +148,7 @@
                     <textarea name="remarque" id="field_remarque" required placeholder="Motif de l’ajustement…">{{ old('remarque') }}</textarea>
                 </div>
             </div>
-            <p class="hint">Utilisez <strong>−</strong> / <strong>+</strong> à côté de chaque quantité en stock. Seules les lignes modifiées seront enregistrées.</p>
+            <p class="hint">Utilisez <strong>−</strong> / <strong>+</strong> à côté de chaque quantité. Seules les lignes modifiées seront enregistrées.</p>
         </div>
 
         <div class="list-wrap">
