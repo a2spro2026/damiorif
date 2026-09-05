@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'depot',
     'depot_destination',
     'note',
+    'montant',
     'user_id',
     'user_name',
 ])]
@@ -22,6 +23,7 @@ class StockMouvement extends Model
     {
         return [
             'date_mouvement' => 'date',
+            'montant' => 'decimal:2',
         ];
     }
 

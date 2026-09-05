@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BonAchat;
 use App\Models\BonCommandeDepot;
 use App\Models\BonVente;
+use App\Models\StockMouvement;
 use App\Support\Depots;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -16,6 +17,7 @@ class DashboardController extends Controller
     {
         $depots = Depots::options();
 
+        // DamioRif = valeur bons d'achat ; dépôts régionaux = totaux des alimentations.
         $stockByDepot = BonAchat::query()
             ->select('depot', DB::raw('COALESCE(SUM(montant), 0) as total'))
             ->whereNotNull('depot')
@@ -24,6 +26,22 @@ class DashboardController extends Controller
             ->pluck('total', 'depot')
             ->map(fn ($v) => round((float) $v, 2))
             ->all();
+
+        if (Schema::hasTable('stock_mouvements') && Schema::hasColumn('stock_mouvements', 'montant')) {
+            $alimentationByDepot = StockMouvement::query()
+                ->select('depot_destination', DB::raw('COALESCE(SUM(montant), 0) as total'))
+                ->where('type', 'transfert')
+                ->where('note', 'like', 'Alimenter dépôt%')
+                ->whereNotNull('depot_destination')
+                ->groupBy('depot_destination')
+                ->pluck('total', 'depot_destination')
+                ->map(fn ($v) => round((float) $v, 2))
+                ->all();
+
+            foreach ($alimentationByDepot as $key => $total) {
+                $stockByDepot[$key] = $total;
+            }
+        }
 
         $user = auth()->user();
         $userDepot = \App\Support\UserAccess::depotKey($user);

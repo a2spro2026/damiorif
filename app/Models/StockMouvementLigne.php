@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'designation',
     'unite',
     'quantite',
+    'prix_unitaire',
+    'sous_total',
 ])]
 class StockMouvementLigne extends Model
 {
@@ -20,6 +22,8 @@ class StockMouvementLigne extends Model
     {
         return [
             'quantite' => 'decimal:3',
+            'prix_unitaire' => 'decimal:2',
+            'sous_total' => 'decimal:2',
         ];
     }
 

@@ -59,11 +59,12 @@ class AlimenterDepotController extends Controller
             'lignes.*.ref' => ['nullable', 'string', 'max:100'],
             'lignes.*.designation' => ['required', 'string', 'max:255'],
             'lignes.*.qte' => ['required', 'numeric', 'min:0.01'],
-            'lignes.*.prix_unitaire' => ['nullable', 'numeric', 'min:0'],
+            'lignes.*.prix_unitaire' => ['required', 'numeric', 'min:0'],
         ], [
             'depot_destination.required' => 'Sélectionnez un dépôt destination.',
             'lignes.required' => 'Ajoutez au moins un article.',
             'lignes.*.designation.required' => 'La désignation est obligatoire.',
+            'lignes.*.prix_unitaire.required' => 'Le prix unitaire est obligatoire.',
         ]);
 
         $stockMap = StockDepotService::stockMapForDepot($central);
@@ -89,7 +90,13 @@ class AlimenterDepotController extends Controller
         $user = $request->user();
         $destLabel = Depots::options()[$data['depot_destination']] ?? $data['depot_destination'];
 
-        DB::transaction(function () use ($data, $central, $user, $destLabel) {
+        $montantTotal = 0.0;
+        foreach ($data['lignes'] as $ligne) {
+            $montantTotal += ((float) $ligne['qte']) * ((float) $ligne['prix_unitaire']);
+        }
+        $montantTotal = round($montantTotal, 2);
+
+        DB::transaction(function () use ($data, $central, $user, $destLabel, $montantTotal) {
             $mvt = StockMouvement::create([
                 'date_mouvement' => $data['date_mouvement'],
                 'numero' => StockMouvement::nextNumero(),
@@ -97,15 +104,20 @@ class AlimenterDepotController extends Controller
                 'depot' => $central,
                 'depot_destination' => $data['depot_destination'],
                 'note' => 'Alimenter dépôt → '.$destLabel,
+                'montant' => $montantTotal,
                 'user_id' => $user?->id,
                 'user_name' => $user?->name,
             ]);
 
             foreach ($data['lignes'] as $ligne) {
+                $qte = (float) $ligne['qte'];
+                $pu = (float) $ligne['prix_unitaire'];
                 $mvt->lignes()->create([
                     'ref_produit' => $ligne['ref'] ?? null,
                     'designation' => $ligne['designation'],
-                    'quantite' => $ligne['qte'],
+                    'quantite' => $qte,
+                    'prix_unitaire' => $pu,
+                    'sous_total' => round($qte * $pu, 2),
                 ]);
             }
 
@@ -114,7 +126,7 @@ class AlimenterDepotController extends Controller
 
         return redirect()
             ->route('stock.alimenter_depot')
-            ->with('success', 'Stock alimenté pour '.$destLabel.'.');
+            ->with('success', 'Stock alimenté pour '.$destLabel.' — Total '.number_format($montantTotal, 2, ',', ' ').' MAD.');
     }
 
     private function assertCentralAccess(): void

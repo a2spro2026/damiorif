@@ -142,6 +142,7 @@
                     <th>N°</th>
                     <th>Destination</th>
                     <th>Qté</th>
+                    <th>Montant</th>
                     <th>Articles</th>
                 </tr>
             </thead>
@@ -149,6 +150,7 @@
                 @forelse ($alimentations as $mvt)
                     @php
                         $qte = (float) $mvt->lignes->sum('quantite');
+                        $montant = (float) ($mvt->montant ?? $mvt->lignes->sum('sous_total'));
                         $dest = $depotLabels[$mvt->depot_destination] ?? $mvt->depot_destination;
                     @endphp
                     <tr>
@@ -156,10 +158,11 @@
                         <td>{{ $mvt->numero }}</td>
                         <td>{{ $dest }}</td>
                         <td>{{ number_format($qte, 2, ',', ' ') }}</td>
+                        <td>{{ number_format($montant, 2, ',', ' ') }} MAD</td>
                         <td>{{ $mvt->lignes->pluck('designation')->filter()->take(3)->implode(', ') }}{{ $mvt->lignes->count() > 3 ? '…' : '' }}</td>
                     </tr>
                 @empty
-                    <tr class="empty-row"><td colspan="5">Aucune alimentation enregistrée.</td></tr>
+                    <tr class="empty-row"><td colspan="6">Aucune alimentation enregistrée.</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -189,7 +192,7 @@
             <td><input type="text" class="js-ref" name="lignes[${i}][ref]" list="refCatalogue" value="${data.ref || ''}"></td>
             <td><input type="text" class="js-designation" name="lignes[${i}][designation]" list="desCatalogue" value="${data.designation || ''}" required></td>
             <td><input type="number" step="0.01" min="0.01" class="js-qte" name="lignes[${i}][qte]" value="${data.qte || 1}" required></td>
-            <td><input type="number" step="0.01" min="0" class="js-pu" name="lignes[${i}][prix_unitaire]" value="${data.prix_unitaire || 0}"></td>
+            <td><input type="number" step="0.01" min="0" class="js-pu" name="lignes[${i}][prix_unitaire]" value="${data.prix_unitaire || ''}" required></td>
             <td><input type="text" class="js-st" value="0,00" readonly></td>
             <td><button type="button" class="icon-btn danger" title="Retirer" onclick="removeLine(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button></td>
         `;
