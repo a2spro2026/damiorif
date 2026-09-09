@@ -17,7 +17,7 @@ class DashboardController extends Controller
     {
         $depots = Depots::options();
 
-        // DamioRif = valeur bons d'achat ; dépôts régionaux = totaux des alimentations.
+        // DamioRif (carte dépôt) : bons d'achat centraux ; régionaux : totaux alimentations.
         $stockByDepot = BonAchat::query()
             ->select('depot', DB::raw('COALESCE(SUM(montant), 0) as total'))
             ->whereNotNull('depot')
@@ -68,6 +68,21 @@ class DashboardController extends Controller
             $chequesByDepot[$key] = $chequesByDepot[$key] ?? 0;
             $traitesByDepot[$key] = $traitesByDepot[$key] ?? 0;
         }
+
+        // Carte DamioRif = somme des soldes dépôts + bons de vente DamioRif.
+        $soldeDepotsTotal = 0.0;
+        foreach (array_merge(Depots::regionalKeys(), [Depots::centralKey()]) as $key) {
+            $soldeDepotsTotal += (float) ($stockByDepot[$key] ?? 0);
+        }
+
+        $ventesDamiorif = 0.0;
+        if (Schema::hasTable('bons_vente')) {
+            $ventesDamiorif = (float) BonVente::query()
+                ->where('depot', Depots::centralKey())
+                ->sum('montant');
+        }
+
+        $stockDamiorif = round($soldeDepotsTotal + $ventesDamiorif, 2);
 
         $currentYear = (int) now()->year;
         $years = range($currentYear - 4, $currentYear);
@@ -172,7 +187,7 @@ class DashboardController extends Controller
 
         return view('dashboard.index', [
             'depots' => $depots,
-            'stockDamiorif' => $stockByDepot['damiorif'] ?? 0,
+            'stockDamiorif' => $stockDamiorif,
             'stockByDepot' => $stockByDepot,
             'caisseByDepot' => $caisseByDepot,
             'reglementsByDepot' => $reglementsByDepot,
