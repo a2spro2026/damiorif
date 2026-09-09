@@ -5,13 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\StockMouvement;
 use App\Support\Depots;
 use App\Support\ProduitReferenceService;
-use App\Support\StockDepotService;
 use App\Support\UserAccess;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class AlimenterDepotController extends Controller
@@ -25,23 +23,11 @@ class AlimenterDepotController extends Controller
             ->only(Depots::regionalKeys())
             ->all();
 
-        $alimentations = StockMouvement::query()
-            ->with('lignes')
-            ->where('type', 'transfert')
-            ->where('depot', $central)
-            ->where('note', 'like', 'Alimenter dépôt%')
-            ->orderByDesc('id')
-            ->limit(50)
-            ->get();
-
         return view('stock.alimenter-depot.index', [
             'centralKey' => $central,
             'centralLabel' => Depots::options()[$central],
             'destinations' => $destinations,
             'references' => ProduitReferenceService::catalogue(),
-            'stockCentral' => StockDepotService::stockMapForDepot($central),
-            'alimentations' => $alimentations,
-            'depotLabels' => Depots::options(),
         ]);
     }
 
@@ -67,26 +53,6 @@ class AlimenterDepotController extends Controller
             'lignes.*.prix_unitaire.required' => 'Le prix unitaire est obligatoire.',
         ]);
 
-        $stockMap = StockDepotService::stockMapForDepot($central);
-        $requested = [];
-        foreach ($data['lignes'] as $ligne) {
-            $key = StockDepotService::productKey($ligne['ref'] ?? null, $ligne['designation']);
-            $requested[$key] = ($requested[$key] ?? 0.0) + (float) $ligne['qte'];
-        }
-        foreach ($requested as $key => $qty) {
-            $available = $stockMap[$key] ?? 0.0;
-            if ($available <= 0.0005) {
-                throw ValidationException::withMessages([
-                    'lignes' => 'Impossible d\'alimenter : article en rupture de stock DamioRif.',
-                ]);
-            }
-            if ($qty > $available + 0.0005) {
-                throw ValidationException::withMessages([
-                    'lignes' => 'Quantité supérieure au stock DamioRif disponible.',
-                ]);
-            }
-        }
-
         $user = $request->user();
         $destLabel = Depots::options()[$data['depot_destination']] ?? $data['depot_destination'];
 
@@ -97,7 +63,33 @@ class AlimenterDepotController extends Controller
         $montantTotal = round($montantTotal, 2);
 
         DB::transaction(function () use ($data, $central, $user, $destLabel, $montantTotal) {
-            $mvt = StockMouvement::create([
+            // 1) Stock initial DamioRif (entrée) — même si le dépôt était vide.
+            $entree = StockMouvement::create([
+                'date_mouvement' => $data['date_mouvement'],
+                'numero' => StockMouvement::nextNumero(),
+                'type' => 'entree',
+                'depot' => $central,
+                'depot_destination' => null,
+                'note' => 'Stock initial (alimentation → '.$destLabel.')',
+                'montant' => $montantTotal,
+                'user_id' => $user?->id,
+                'user_name' => $user?->name,
+            ]);
+
+            foreach ($data['lignes'] as $ligne) {
+                $qte = (float) $ligne['qte'];
+                $pu = (float) $ligne['prix_unitaire'];
+                $entree->lignes()->create([
+                    'ref_produit' => $ligne['ref'] ?? null,
+                    'designation' => $ligne['designation'],
+                    'quantite' => $qte,
+                    'prix_unitaire' => $pu,
+                    'sous_total' => round($qte * $pu, 2),
+                ]);
+            }
+
+            // 2) Transfert DamioRif → dépôt régional (sortie du central).
+            $transfert = StockMouvement::create([
                 'date_mouvement' => $data['date_mouvement'],
                 'numero' => StockMouvement::nextNumero(),
                 'type' => 'transfert',
@@ -112,7 +104,7 @@ class AlimenterDepotController extends Controller
             foreach ($data['lignes'] as $ligne) {
                 $qte = (float) $ligne['qte'];
                 $pu = (float) $ligne['prix_unitaire'];
-                $mvt->lignes()->create([
+                $transfert->lignes()->create([
                     'ref_produit' => $ligne['ref'] ?? null,
                     'designation' => $ligne['designation'],
                     'quantite' => $qte,
