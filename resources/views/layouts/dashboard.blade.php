@@ -790,7 +790,8 @@
             transition: max-height 0.35s ease, opacity 0.22s ease, padding 0.22s ease, margin 0.22s ease, visibility 0.22s;
         }
 
-        .sidebar-group.open .submenu {
+        .sidebar-group.open .submenu,
+        .sidebar-nav.menus-always-open .sidebar-group .submenu {
             max-height: 900px;
             opacity: 1;
             visibility: visible;
@@ -799,6 +800,15 @@
             border-left: 1px solid rgba(94, 200, 179, 0.28);
             background: linear-gradient(180deg, rgba(94,200,179,0.05), transparent 30%);
             border-radius: 0 12px 12px 0;
+        }
+
+        .sidebar-nav.menus-always-open .sidebar-toggle {
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .sidebar-nav.menus-always-open .sidebar-toggle .link-arrow {
+            display: none;
         }
 
         .submenu > li {
@@ -1389,6 +1399,8 @@
             $authUser = auth()->user();
             $userInitial = mb_strtoupper(mb_substr($authUser->name ?? 'U', 0, 1));
             $userStatut = \App\Support\AppMenus::statutLabel($authUser->statut);
+            $userDepotKey = \App\Support\UserAccess::depotKey($authUser);
+            $keepMenusOpen = $userDepotKey && \App\Support\Depots::isRegional($userDepotKey);
         @endphp
         <div class="navbar-actions">
             <button type="button" class="sidebar-panel-toggle" id="sidebarPanelToggle" title="Masquer le menu" aria-label="Masquer le menu latéral" aria-pressed="false">
@@ -1435,13 +1447,13 @@
             </div>
             <div class="sidebar-scroll">
                 <p class="sidebar-label">Menu principal</p>
-                <ul class="sidebar-nav" id="sidebarNav">
+                <ul class="sidebar-nav{{ $keepMenusOpen ? ' menus-always-open' : '' }}" id="sidebarNav">
                     @foreach (\App\Support\UserAccess::navigationFor(auth()->user()) as $moduleKey => $section)
-                        <li class="sidebar-group" data-menu="{{ $moduleKey }}">
+                        <li class="sidebar-group{{ $keepMenusOpen ? ' open' : '' }}" data-menu="{{ $moduleKey }}">
                             <button
                                 type="button"
-                                class="sidebar-link sidebar-toggle"
-                                aria-expanded="false"
+                                class="sidebar-link sidebar-toggle{{ $keepMenusOpen ? ' active' : '' }}"
+                                aria-expanded="{{ $keepMenusOpen ? 'true' : 'false' }}"
                             >
                                 <span class="icon-wrap">
                                     @include('partials.menu-icon', ['icon' => $section['icon']])
@@ -1556,6 +1568,7 @@
             }
 
             var STORAGE_KEY = 'damiorif_sidebar_open';
+            var keepMenusOpen = @json((bool) $keepMenusOpen);
 
             function getOpenMenus() {
                 try {
@@ -1582,6 +1595,7 @@
             }
 
             function persistState() {
+                if (keepMenusOpen) return;
                 var open = [];
                 document.querySelectorAll('.sidebar-group.open').forEach(function (group) {
                     var key = group.getAttribute('data-menu');
@@ -1590,24 +1604,26 @@
                 saveOpenMenus(open);
             }
 
-            var saved = getOpenMenus();
+            var saved = keepMenusOpen ? [] : getOpenMenus();
 
             document.querySelectorAll('.sidebar-group').forEach(function (group) {
                 var key = group.getAttribute('data-menu');
                 var hasActive = !!group.querySelector('.submenu-link.active');
-                var shouldOpen = saved.indexOf(key) !== -1 || hasActive;
+                var shouldOpen = keepMenusOpen || saved.indexOf(key) !== -1 || hasActive;
                 setGroupOpen(group, shouldOpen);
             });
 
             persistState();
 
-            document.querySelectorAll('.sidebar-toggle').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    var group = btn.closest('.sidebar-group');
-                    setGroupOpen(group, !group.classList.contains('open'));
-                    persistState();
+            if (!keepMenusOpen) {
+                document.querySelectorAll('.sidebar-toggle').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var group = btn.closest('.sidebar-group');
+                        setGroupOpen(group, !group.classList.contains('open'));
+                        persistState();
+                    });
                 });
-            });
+            }
         })();
 
         window.damioBindTableFilters = function (tableId, options) {
