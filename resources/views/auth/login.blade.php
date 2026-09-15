@@ -447,7 +447,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('login') }}" autocomplete="on">
+            <form method="POST" action="{{ route('login') }}" autocomplete="off">
                 @csrf
 
                 <div class="form-group">
@@ -457,17 +457,17 @@
                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                         </svg>
                         <select name="statut" id="statut" class="form-control" required autocomplete="off">
-                            <option value="" disabled {{ old('statut', 'directeur') ? '' : 'selected' }}>— Sélectionner —</option>
-                            <option value="directeur" {{ old('statut', 'directeur') === 'directeur' ? 'selected' : '' }}>Directeur</option>
-                            <option value="gerant" {{ old('statut', 'directeur') === 'gerant' ? 'selected' : '' }}>Gérant</option>
-                            <option value="facturation" {{ old('statut', 'directeur') === 'facturation' ? 'selected' : '' }}>Facturation</option>
-                            <option value="magasinier" {{ old('statut', 'directeur') === 'magasinier' ? 'selected' : '' }}>Magasinier</option>
-                            <option value="depot_tanger" {{ old('statut', 'directeur') === 'depot_tanger' ? 'selected' : '' }}>Depot Tanger</option>
-                            <option value="depot_nador" {{ old('statut', 'directeur') === 'depot_nador' ? 'selected' : '' }}>Depot Nador</option>
-                            <option value="depot_tetouan" {{ old('statut', 'directeur') === 'depot_tetouan' ? 'selected' : '' }}>Depot Tetouan</option>
-                            <option value="depot_houcima" {{ old('statut', 'directeur') === 'depot_houcima' ? 'selected' : '' }}>Depot Houcima</option>
-                            <option value="depot_belkciri" {{ old('statut', 'directeur') === 'depot_belkciri' ? 'selected' : '' }}>Depot Belkciri</option>
-                            <option value="depot_damiorif" {{ old('statut', 'directeur') === 'depot_damiorif' ? 'selected' : '' }}>Dépôt DamioRif</option>
+                            <option value="" disabled selected>— Sélectionner —</option>
+                            <option value="directeur">Directeur</option>
+                            <option value="gerant">Gérant</option>
+                            <option value="facturation">Facturation</option>
+                            <option value="magasinier">Magasinier</option>
+                            <option value="depot_tanger">Depot Tanger</option>
+                            <option value="depot_nador">Depot Nador</option>
+                            <option value="depot_tetouan">Depot Tetouan</option>
+                            <option value="depot_houcima">Depot Houcima</option>
+                            <option value="depot_belkciri">Depot Belkciri</option>
+                            <option value="depot_damiorif">Dépôt DamioRif</option>
                         </select>
                     </div>
                 </div>
@@ -485,10 +485,10 @@
                             id="login"
                             class="form-control"
                             placeholder="Votre identifiant"
-                            value="{{ old('login') }}"
+                            value=""
                             required
                             autofocus
-                            autocomplete="username"
+                            autocomplete="off"
                             spellcheck="false"
                         >
                     </div>
@@ -507,15 +507,11 @@
                             id="password"
                             class="form-control"
                             placeholder="••••••••"
+                            value=""
                             required
-                            autocomplete="current-password"
+                            autocomplete="off"
                         >
                     </div>
-                </div>
-
-                <div class="remember-row">
-                    <input type="checkbox" name="remember" id="remember" value="1">
-                    <label for="remember">Se souvenir de moi</label>
                 </div>
 
                 <button type="submit" class="btn-login">Connexion</button>

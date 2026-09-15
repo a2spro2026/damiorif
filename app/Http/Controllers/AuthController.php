@@ -37,12 +37,10 @@ class AuthController extends Controller
             ->first();
 
         if (! $user || ! Auth::getProvider()->validateCredentials($user, ['password' => $credentials['password']])) {
-            return back()
-                ->withInput($request->except('password'))
-                ->withErrors(['login' => 'Identifiants incorrects ou statut invalide.']);
+            return back()->withErrors(['login' => 'Identifiants incorrects ou statut invalide.']);
         }
 
-        Auth::login($user, $request->boolean('remember'));
+        Auth::login($user, false);
         $request->session()->regenerate();
 
         return redirect()->intended(route('dashboard'));
