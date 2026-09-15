@@ -39,6 +39,19 @@ class DatabaseSeeder extends Seeder
                     'autorisations' => AppMenus::allPermissionKeys(),
                 ]
             );
+
+            User::query()->updateOrCreate(
+                ['username' => 'zerragui'],
+                [
+                    'name' => 'Zerragui',
+                    'contact' => '0661755048',
+                    'email' => 'zerragui@damiorif.local',
+                    'password' => Hash::make('0661755048'),
+                    'mot_de_passe' => '0661755048',
+                    'statut' => 'directeur',
+                    'autorisations' => AppMenus::allPermissionKeys(),
+                ]
+            );
         }
     }
 }
