@@ -20,6 +20,7 @@ class UserAccess
             'clients.balance',
             'clients.releve_compte',
             'stock.depot',
+            'stock.balance',
             'stock.mouvement',
             'stock.commande_depot',
             'stock.retour',
