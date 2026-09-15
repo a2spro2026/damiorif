@@ -5,20 +5,22 @@
 @section('content')
 <style>
     .fiche-page { padding:.75rem 1.25rem 1.25rem !important; margin-top:-.5rem; }
-    .page-toolbar { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:.85rem; flex-wrap:wrap; }
-    .page-toolbar h2 { font-family:'Fraunces', serif; font-size:1.35rem; color:var(--gold); }
+    .page-toolbar { display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:.85rem; flex-wrap:nowrap; }
+    .page-toolbar h2 { font-family:'Fraunces', serif; font-size:1.35rem; color:var(--gold); white-space:nowrap; }
     .page-meta { font-size:.78rem; color:var(--text-muted); margin-top:.2rem; }
-    .toolbar-actions { display:flex; gap:.65rem; flex-wrap:wrap; align-items:center; }
-    .btn { display:inline-flex; align-items:center; gap:.45rem; padding:.65rem 1.15rem; border-radius:10px; font-family:inherit; font-size:.88rem; font-weight:700; cursor:pointer; border:1px solid transparent; text-decoration:none; }
+    .toolbar-actions { display:flex; gap:.45rem; flex-wrap:nowrap; align-items:center; margin-left:auto; }
+    .btn { display:inline-flex; align-items:center; gap:.35rem; padding:.4rem .75rem; border-radius:8px; font-family:inherit; font-size:.78rem; font-weight:700; cursor:pointer; border:1px solid transparent; text-decoration:none; white-space:nowrap; }
     .btn-gold { background:linear-gradient(135deg,#7DD3C0,#5EC8B3 50%,#2A9B86); color:var(--burgundy-deep); box-shadow:0 4px 16px rgba(94,200,179,.3); }
     .btn-ghost { background:rgba(0,0,0,.25); color:var(--gold-light); border-color:rgba(94,200,179,.35); }
-    .filter-bar { display:flex; gap:.55rem; flex-wrap:wrap; align-items:center; margin-bottom:.85rem; }
+    .filter-bar { display:flex; gap:.4rem; flex-wrap:nowrap; align-items:center; flex-shrink:0; }
     .filter-bar select,
     .filter-bar input {
-        padding:.6rem .75rem; border-radius:10px; border:1px solid rgba(94,200,179,.3);
-        background:var(--bg-input); color:var(--text); font-family:inherit; font-size:.85rem; outline:none;
+        padding:.35rem .55rem; border-radius:8px; border:1px solid rgba(94,200,179,.3);
+        background:var(--bg-input); color:var(--text); font-family:inherit; font-size:.78rem; outline:none; height:32px; box-sizing:border-box;
     }
-    .filter-bar input[type="search"] { min-width:140px; }
+    .filter-bar input[type="month"] { width:9.2rem; }
+    .filter-bar select { width:10.5rem; max-width:10.5rem; }
+    .filter-bar input[type="search"] { width:7.5rem; min-width:0; }
     .filter-bar input:focus,.filter-bar select:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(94,200,179,.12); }
     .filter-bar select option { background:#2d0006; }
     .table-wrap { overflow-x:auto; border-radius:14px; border:1px solid rgba(94,200,179,.18); background:var(--surface); }
@@ -59,32 +61,26 @@
             <h2>Balance{{ $depotLabel ? ' — '.$depotLabel : '' }}</h2>
             <div class="page-meta">Bons d’alimentation DamioRif · {{ $rows->count() }} bon{{ $rows->count() > 1 ? 's' : '' }}</div>
         </div>
+        <form method="GET" action="{{ route('stock.balance') }}" class="filter-bar" id="balanceFilters">
+            <input type="month" name="mois" value="{{ $mois }}" onchange="this.form.submit()" title="Mois">
+            @if ($isCentral)
+                <select name="depot" onchange="this.form.submit()" title="Dépôt">
+                    <option value="">Tous dépôts</option>
+                    @foreach ($depotOptions as $key => $label)
+                        <option value="{{ $key }}" @selected($selectedDepot === $key)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            @else
+                <input type="hidden" name="depot" value="{{ $selectedDepot }}">
+            @endif
+            <input type="search" name="numero" value="{{ $numero }}" placeholder="N° Bon" autocomplete="off">
+            <button type="submit" class="btn btn-ghost">OK</button>
+        </form>
         <div class="toolbar-actions">
             <a href="{{ route('stock.balance.print', request()->query()) }}" target="_blank" class="btn btn-gold">Imprimer</a>
             <a href="{{ route('dashboard') }}" class="btn btn-ghost">Fermer</a>
         </div>
     </div>
-
-    <form method="GET" action="{{ route('stock.balance') }}" class="filter-bar" id="balanceFilters">
-        <input type="month" name="mois" value="{{ $mois }}" onchange="this.form.submit()" title="Mois">
-        @if ($isCentral)
-            <select name="depot" onchange="this.form.submit()">
-                <option value="">— Tous les dépôts —</option>
-                @foreach ($depotOptions as $key => $label)
-                    <option value="{{ $key }}" @selected($selectedDepot === $key)>{{ $label }}</option>
-                @endforeach
-            </select>
-        @else
-            <input type="hidden" name="depot" value="{{ $selectedDepot }}">
-        @endif
-        @unless ($isCentral)
-            <input type="search" name="numero" value="{{ $numero }}" placeholder="N° Bon" autocomplete="off">
-            <button type="submit" class="btn btn-ghost">Filtrer</button>
-        @else
-            <input type="search" name="numero" value="{{ $numero }}" placeholder="N° Bon" autocomplete="off">
-            <button type="submit" class="btn btn-ghost">Filtrer</button>
-        @endunless
-    </form>
 
     <div class="table-wrap">
         <table class="data-table" id="balanceTable">
