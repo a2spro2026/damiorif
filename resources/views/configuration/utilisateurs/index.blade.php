@@ -445,21 +445,26 @@
     </div>
 </div>
 
+@php
+    $usersByIdPayload = $users->keyBy('id')->map(static function ($u) {
+        return [
+            'id' => $u->id,
+            'name' => $u->name,
+            'cin' => $u->cin,
+            'contact' => $u->contact,
+            'username' => $u->username,
+            'statut' => $u->statut,
+            'autorisations' => $u->autorisations ?? [],
+            'created_at' => optional($u->created_at)?->toIso8601String(),
+        ];
+    })->all();
+@endphp
 <script>
     const modal = document.getElementById('userModal');
     const form = document.getElementById('userForm');
     const storeUrl = @json(route('configuration.utilisateurs.store'));
     const updateUrlTemplate = @json(url('/configuration/utilisateurs'));
-    const usersById = @json($users->keyBy('id')->map(fn ($u) => [
-        'id' => $u->id,
-        'name' => $u->name,
-        'cin' => $u->cin,
-        'contact' => $u->contact,
-        'username' => $u->username,
-        'statut' => $u->statut,
-        'autorisations' => $u->autorisations ?? [],
-        'created_at' => optional($u->created_at)?->toIso8601String(),
-    ])->all());
+    const usersById = @json($usersByIdPayload);
 
     function openModal() {
         modal.classList.add('open');
