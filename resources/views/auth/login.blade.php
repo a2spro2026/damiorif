@@ -3,6 +3,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta name="robots" content="noindex, nofollow">
     <title>Connexion — Damio Rif</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -447,8 +450,14 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('login') }}" autocomplete="off">
+            <form method="POST" action="{{ route('login') }}" autocomplete="off" id="loginForm" novalidate>
                 @csrf
+
+                {{-- Leurres pour détourner l’autofill navigateur --}}
+                <div aria-hidden="true" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">
+                    <input type="text" name="fake_user" tabindex="-1" autocomplete="username">
+                    <input type="password" name="fake_pass" tabindex="-1" autocomplete="current-password">
+                </div>
 
                 <div class="form-group">
                     <label for="statut">Statut</label>
@@ -456,7 +465,7 @@
                         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                         </svg>
-                        <select name="statut" id="statut" class="form-control" required autocomplete="off">
+                        <select name="statut" id="statut" class="form-control" required autocomplete="off" data-lpignore="true" data-1p-ignore="true" data-form-type="other">
                             <option value="" disabled selected>— Sélectionner —</option>
                             <option value="directeur">Directeur</option>
                             <option value="gerant">Gérant</option>
@@ -487,9 +496,15 @@
                             placeholder="Votre identifiant"
                             value=""
                             required
-                            autofocus
                             autocomplete="off"
+                            autocapitalize="off"
+                            autocorrect="off"
                             spellcheck="false"
+                            readonly
+                            data-lpignore="true"
+                            data-1p-ignore="true"
+                            data-form-type="other"
+                            onfocus="this.removeAttribute('readonly')"
                         >
                     </div>
                 </div>
@@ -509,7 +524,12 @@
                             placeholder="••••••••"
                             value=""
                             required
-                            autocomplete="off"
+                            autocomplete="new-password"
+                            readonly
+                            data-lpignore="true"
+                            data-1p-ignore="true"
+                            data-form-type="other"
+                            onfocus="this.removeAttribute('readonly')"
                         >
                     </div>
                 </div>
@@ -520,5 +540,44 @@
             <p class="footer-note">© {{ date('Y') }} A2s------Tous Droits Réservés</p>
         </div>
     </main>
+    <script>
+        (function () {
+            function clearLoginFields() {
+                var form = document.getElementById('loginForm');
+                if (!form) return;
+                var statut = document.getElementById('statut');
+                var login = document.getElementById('login');
+                var password = document.getElementById('password');
+                if (statut) {
+                    statut.selectedIndex = 0;
+                    statut.value = '';
+                }
+                if (login) {
+                    login.value = '';
+                    login.setAttribute('readonly', 'readonly');
+                }
+                if (password) {
+                    password.value = '';
+                    password.setAttribute('readonly', 'readonly');
+                }
+                form.querySelectorAll('input[name="fake_user"], input[name="fake_pass"]').forEach(function (el) {
+                    el.value = '';
+                });
+            }
+
+            clearLoginFields();
+            document.addEventListener('DOMContentLoaded', clearLoginFields);
+            window.addEventListener('load', function () {
+                clearLoginFields();
+                setTimeout(clearLoginFields, 50);
+                setTimeout(clearLoginFields, 300);
+                setTimeout(clearLoginFields, 800);
+            });
+            window.addEventListener('pageshow', function (e) {
+                clearLoginFields();
+                if (e.persisted) clearLoginFields();
+            });
+        })();
+    </script>
 </body>
 </html>
