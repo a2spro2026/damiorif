@@ -60,6 +60,14 @@
     .qty-stock { min-width:4.2rem; text-align:center; font-weight:700; font-variant-numeric:tabular-nums; }
     .qty-stock.pos { color:#bbf7d0; }
     .qty-stock.neg { color:#fecaca; }
+    .qty-input {
+        width:5.5rem; padding:.4rem .45rem; border-radius:8px;
+        border:1px solid rgba(94,200,179,.35); background:var(--bg-input);
+        color:var(--text); font-family:inherit; font-size:.88rem; font-weight:700;
+        text-align:center; font-variant-numeric:tabular-nums; outline:none;
+    }
+    .qty-input.pos { color:#bbf7d0; }
+    .qty-input.neg { color:#fecaca; }
     .qty-delta { min-width:3.2rem; text-align:center; font-size:.78rem; color:var(--gold-light); font-weight:700; }
     .qty-delta.zero { opacity:.35; }
     .icon-btn {
@@ -148,7 +156,7 @@
                     <textarea name="remarque" id="field_remarque" required placeholder="Motif de l’ajustement…">{{ old('remarque') }}</textarea>
                 </div>
             </div>
-            <p class="hint">Utilisez <strong>−</strong> / <strong>+</strong> à côté de chaque quantité. Seules les lignes modifiées seront enregistrées.</p>
+            <p class="hint">Saisissez la quantité manuellement ou utilisez <strong>−</strong> / <strong>+</strong>. Seules les lignes modifiées seront enregistrées.</p>
         </div>
 
         <div class="list-wrap">
@@ -164,7 +172,12 @@
                                 <button type="button" class="icon-btn minus" title="Diminuer" onclick="bump({{ $i }}, -1)">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/></svg>
                                 </button>
-                                <span class="qty-stock {{ $row['qte_en_stock'] > 0 ? 'pos' : ($row['qte_en_stock'] < 0 ? 'neg' : '') }}" data-qty>{{ number_format($row['qte_en_stock'], 2, ',', ' ') }}</span>
+                                <input type="number"
+                                       class="qty-input {{ $row['qte_en_stock'] > 0 ? 'pos' : ($row['qte_en_stock'] < 0 ? 'neg' : '') }}"
+                                       step="0.01"
+                                       data-qty
+                                       value="{{ rtrim(rtrim(number_format($row['qte_en_stock'], 2, '.', ''), '0'), '.') }}"
+                                       oninput="setQty({{ $i }}, this.value)">
                                 <button type="button" class="icon-btn plus" title="Augmenter" onclick="bump({{ $i }}, 1)">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
                                 </button>
@@ -193,23 +206,39 @@
         return (Math.round(n * 100) / 100).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
-    function bump(index, step) {
-        const item = document.querySelector('.stock-item[data-index="' + index + '"]');
-        if (!item) return;
+    function applyAdj(item, adj) {
         const stock = parseFloat(item.dataset.stock) || 0;
         const adjInput = item.querySelector('[data-adj]');
-        let adj = (parseFloat(adjInput.value) || 0) + step;
         adjInput.value = adj;
 
         const newStock = stock + adj;
         const qtyEl = item.querySelector('[data-qty]');
         const deltaEl = item.querySelector('[data-delta]');
-        qtyEl.textContent = fmt(newStock);
+        if (document.activeElement !== qtyEl) {
+            qtyEl.value = (Math.round(newStock * 100) / 100);
+        }
         qtyEl.classList.toggle('pos', newStock > 0);
         qtyEl.classList.toggle('neg', newStock < 0);
         deltaEl.textContent = (adj > 0 ? '+' : '') + fmt(adj);
         deltaEl.classList.toggle('zero', Math.abs(adj) < 0.0005);
         item.classList.toggle('changed', Math.abs(adj) >= 0.0005);
+    }
+
+    function bump(index, step) {
+        const item = document.querySelector('.stock-item[data-index="' + index + '"]');
+        if (!item) return;
+        const adjInput = item.querySelector('[data-adj]');
+        const adj = (parseFloat(adjInput.value) || 0) + step;
+        applyAdj(item, adj);
+    }
+
+    function setQty(index, raw) {
+        const item = document.querySelector('.stock-item[data-index="' + index + '"]');
+        if (!item) return;
+        const stock = parseFloat(item.dataset.stock) || 0;
+        const next = parseFloat(raw);
+        if (Number.isNaN(next)) return;
+        applyAdj(item, Math.round((next - stock) * 1000) / 1000);
     }
 
     document.getElementById('ajusterForm').addEventListener('submit', function (e) {
@@ -238,7 +267,7 @@
 
         if (n === 0) {
             e.preventDefault();
-            alert('Ajustez au moins une quantité avec + ou −.');
+            alert('Ajustez au moins une quantité (saisie manuelle ou + / −).');
         }
     });
 </script>

@@ -327,10 +327,10 @@
                         </td>
                         <td class="col-center">
                             <div class="action-btns">
-                                <button type="button" class="icon-btn" title="Voir" onclick='openViewModal(@json($user))'>
+                                <button type="button" class="icon-btn" title="Voir" data-user-action="view" data-user-id="{{ $user->id }}">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                                 </button>
-                                <button type="button" class="icon-btn" title="Modifier" onclick='openEditModal(@json($user))'>
+                                <button type="button" class="icon-btn" title="Modifier" data-user-action="edit" data-user-id="{{ $user->id }}">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                                 </button>
                                 <form method="POST" action="{{ route('configuration.utilisateurs.destroy', $user) }}" onsubmit="return confirm('Supprimer cet utilisateur ?');" style="display:inline;">
@@ -366,6 +366,7 @@
         <form method="POST" id="userForm">
             @csrf
             <input type="hidden" name="_method" id="formMethod" value="POST">
+            <input type="hidden" name="_edit_id" id="field_edit_id" value="">
 
             <div class="form-grid">
                 <div class="field">
@@ -449,6 +450,16 @@
     const form = document.getElementById('userForm');
     const storeUrl = @json(route('configuration.utilisateurs.store'));
     const updateUrlTemplate = @json(url('/configuration/utilisateurs'));
+    const usersById = @json($users->keyBy('id')->map(fn ($u) => [
+        'id' => $u->id,
+        'name' => $u->name,
+        'cin' => $u->cin,
+        'contact' => $u->contact,
+        'username' => $u->username,
+        'statut' => $u->statut,
+        'autorisations' => $u->autorisations ?? [],
+        'created_at' => optional($u->created_at)?->toIso8601String(),
+    ])->all());
 
     function openModal() {
         modal.classList.add('open');
@@ -495,9 +506,10 @@
     });
 
     function setFormReadonly(readonly) {
-        form.querySelectorAll('input, select').forEach(el => {
+        form.querySelectorAll('input, select, textarea, button').forEach(el => {
             if (el.id === 'field_date' || el.id === 'field_id') return;
             if (el.type === 'hidden') return;
+            if (el.id === 'submitBtn' || el.closest('.modal-footer')) return;
             el.disabled = readonly;
         });
         const master = document.getElementById('authSelectAll');
@@ -507,10 +519,20 @@
         syncSelectAllAuth();
     }
 
+    function enableFormFields() {
+        form.querySelectorAll('input, select, textarea, button').forEach(el => {
+            if (el.id === 'field_date' || el.id === 'field_id') return;
+            el.disabled = false;
+        });
+        const master = document.getElementById('authSelectAll');
+        if (master) master.disabled = false;
+    }
+
     function openCreateModal() {
         document.getElementById('modalTitle').textContent = 'Ajouter un utilisateur';
         form.action = storeUrl;
         document.getElementById('formMethod').value = 'POST';
+        document.getElementById('field_edit_id').value = '';
         document.getElementById('field_date').value = @json(now()->format('d/m/Y'));
         document.getElementById('field_id').value = 'Auto';
         document.getElementById('field_name').value = '';
@@ -542,7 +564,7 @@
         document.getElementById('field_cin').value = user.cin || '';
         document.getElementById('field_contact').value = user.contact || '';
         document.getElementById('field_username').value = user.username || '';
-        document.getElementById('field_password').value = user.mot_de_passe || '';
+        document.getElementById('field_password').value = '';
         document.getElementById('field_statut').value = user.statut || 'magasinier';
         setAuthChecks(user.autorisations || []);
     }
@@ -551,8 +573,11 @@
         document.getElementById('modalTitle').textContent = 'Modifier utilisateur';
         form.action = updateUrlTemplate + '/' + user.id;
         document.getElementById('formMethod').value = 'PUT';
+        document.getElementById('field_edit_id').value = user.id || '';
         document.getElementById('field_password').required = false;
         document.getElementById('field_password').placeholder = 'Laisser vide pour ne pas changer';
+        document.getElementById('submitBtn').textContent = 'Enregistrer';
+        document.getElementById('submitBtn').onclick = null;
         fillForm(user);
         setFormReadonly(false);
         openModal();
@@ -560,14 +585,63 @@
 
     function openViewModal(user) {
         document.getElementById('modalTitle').textContent = 'Détail utilisateur';
-        form.action = '#';
+        form.action = updateUrlTemplate + '/' + user.id;
+        document.getElementById('formMethod').value = 'PUT';
+        document.getElementById('field_edit_id').value = user.id || '';
+        document.getElementById('field_password').required = false;
+        document.getElementById('field_password').placeholder = 'Laisser vide pour ne pas changer';
         fillForm(user);
-        setFormReadonly(true);
+        setFormReadonly(false);
+        document.getElementById('submitBtn').textContent = 'Enregistrer';
+        document.getElementById('submitBtn').onclick = null;
         openModal();
     }
+
+    document.querySelectorAll('[data-user-action]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const user = usersById[btn.getAttribute('data-user-id')];
+            if (!user) return;
+            if (btn.getAttribute('data-user-action') === 'edit') openEditModal(user);
+            else openViewModal(user);
+        });
+    });
+
+    form.addEventListener('submit', function () {
+        // Les champs disabled ne partent pas dans le POST — on réactive tout avant envoi.
+        enableFormFields();
+        if (document.getElementById('formMethod').value === 'PUT' && !form.action.includes('/configuration/utilisateurs/')) {
+            return false;
+        }
+    });
 
     modal.addEventListener('click', function (e) {
         if (e.target === modal) closeModal();
     });
+
+    @if ($errors->any() && old('username'))
+        (function () {
+            const oldUser = {
+                id: @json(old('_edit_id')),
+                name: @json(old('name')),
+                cin: @json(old('cin')),
+                contact: @json(old('contact')),
+                username: @json(old('username')),
+                statut: @json(old('statut')),
+                autorisations: @json(old('autorisations', [])),
+                created_at: null,
+            };
+            if (oldUser.id) {
+                openEditModal(oldUser);
+            } else {
+                openCreateModal();
+                document.getElementById('field_name').value = oldUser.name || '';
+                document.getElementById('field_cin').value = oldUser.cin || '';
+                document.getElementById('field_contact').value = oldUser.contact || '';
+                document.getElementById('field_username').value = oldUser.username || '';
+                document.getElementById('field_statut').value = oldUser.statut || 'magasinier';
+                setAuthChecks(oldUser.autorisations || []);
+            }
+        })();
+    @endif
 </script>
 @endsection

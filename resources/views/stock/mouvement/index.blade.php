@@ -10,8 +10,14 @@
     .toolbar-actions { display:flex; gap:.65rem; flex-wrap:wrap; align-items:center; }
     .btn { display:inline-flex; align-items:center; gap:.45rem; padding:.65rem 1.15rem; border-radius:10px; font-family:inherit; font-size:.88rem; font-weight:700; cursor:pointer; border:1px solid transparent; text-decoration:none; }
     .btn-ghost { background:rgba(0,0,0,.25); color:var(--gold-light); border-color:rgba(94,200,179,.35); }
-    .filter-bar { display:flex; gap:.65rem; flex-wrap:wrap; align-items:center; }
-    .filter-bar select { padding:.6rem .75rem; border-radius:10px; border:1px solid rgba(94,200,179,.3); background:var(--bg-input); color:var(--text); font-family:inherit; font-size:.85rem; }
+    .filter-bar { display:flex; gap:.55rem; flex-wrap:wrap; align-items:center; }
+    .filter-bar select,
+    .filter-bar input[type="search"] {
+        padding:.6rem .75rem; border-radius:10px; border:1px solid rgba(94,200,179,.3);
+        background:var(--bg-input); color:var(--text); font-family:inherit; font-size:.85rem; outline:none;
+    }
+    .filter-bar input[type="search"] { min-width:140px; }
+    .filter-bar input[type="search"]:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(94,200,179,.12); }
     .table-wrap { overflow-x:auto; border-radius:14px; border:1px solid rgba(94,200,179,.18); background:var(--surface); }
     .data-table { width:100%; border-collapse:collapse; min-width:1100px; }
     .data-table th, .data-table td { padding:.55rem .45rem; font-size:.82rem; text-align:center; }
@@ -27,7 +33,7 @@
     <div class="page-toolbar">
         <h2>Mouvement Stock — {{ $depotLabel }} ({{ $selectedYear }})</h2>
         <div class="toolbar-actions">
-            <form method="GET" class="filter-bar">
+            <form method="GET" class="filter-bar" id="mouvementFilters">
                 @if (count($depotOptions) > 1)
                     <select name="depot" onchange="this.form.submit()">
                         @foreach ($depotOptions as $key => $label)
@@ -40,13 +46,15 @@
                         <option value="{{ $year }}" @selected($selectedYear === $year)>{{ $year }}</option>
                     @endforeach
                 </select>
+                <input type="search" data-filter="ref" placeholder="Réf" autocomplete="off" onclick="event.stopPropagation();" onkeydown="if(event.key==='Enter')event.preventDefault();">
+                <input type="search" data-filter="designation" placeholder="Désignation" autocomplete="off" onclick="event.stopPropagation();" onkeydown="if(event.key==='Enter')event.preventDefault();">
             </form>
             <a href="{{ route('dashboard') }}" class="btn btn-ghost">Fermer</a>
         </div>
     </div>
 
     <div class="table-wrap">
-        <table class="data-table">
+        <table class="data-table" id="mouvementTable">
             <thead>
                 <tr>
                     <th>Réf</th>
@@ -59,7 +67,9 @@
             </thead>
             <tbody>
                 @forelse ($releveRows as $row)
-                    <tr>
+                    <tr data-row
+                        data-ref="{{ mb_strtolower($row['ref']) }}"
+                        data-designation="{{ mb_strtolower($row['designation']) }}">
                         <td>{{ $row['ref'] }}</td>
                         <td>{{ $row['designation'] }}</td>
                         @for ($m = 1; $m <= 12; $m++)
@@ -73,8 +83,13 @@
                 @empty
                     <tr class="empty-row"><td colspan="15">Aucune vente ni stock pour ce dépôt.</td></tr>
                 @endforelse
+                <tr class="empty-row js-filter-empty" style="display:none;"><td colspan="15">Aucun résultat pour cette recherche.</td></tr>
             </tbody>
         </table>
     </div>
 </div>
+
+<script>
+    damioBindTableFilters('mouvementTable', { filterRoot: '#mouvementFilters [data-filter]' });
+</script>
 @endsection

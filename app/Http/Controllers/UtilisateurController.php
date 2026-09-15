@@ -99,7 +99,7 @@ class UtilisateurController extends Controller
     {
         $permissionKeys = array_merge(AppMenus::allPermissionKeys(), ['stock.fiche_produit']);
 
-        return $request->validate([
+        $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'cin' => ['nullable', 'string', 'max:50'],
             'contact' => ['nullable', 'string', 'max:50'],
@@ -112,7 +112,7 @@ class UtilisateurController extends Controller
             'password' => [$user ? 'nullable' : 'required', 'string', 'min:4', 'max:100'],
             'statut' => ['required', 'string', Rule::in(array_keys(AppMenus::statutOptions()))],
             'autorisations' => ['nullable', 'array'],
-            'autorisations.*' => ['string', Rule::in($permissionKeys)],
+            'autorisations.*' => ['string'],
         ], [
             'name.required' => 'Le nom complet est obligatoire.',
             'username.required' => 'Le login est obligatoire.',
@@ -120,5 +120,13 @@ class UtilisateurController extends Controller
             'password.required' => 'Le mot de passe est obligatoire.',
             'statut.required' => 'Le statut est obligatoire.',
         ]);
+
+        $allowed = array_flip($permissionKeys);
+        $data['autorisations'] = array_values(array_filter(
+            $data['autorisations'] ?? [],
+            fn ($key) => isset($allowed[$key])
+        ));
+
+        return $data;
     }
 }

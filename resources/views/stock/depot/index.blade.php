@@ -11,7 +11,14 @@
     .btn { display:inline-flex; align-items:center; gap:.45rem; padding:.65rem 1.15rem; border-radius:10px; font-family:inherit; font-size:.88rem; font-weight:700; cursor:pointer; border:1px solid transparent; text-decoration:none; }
     .btn-gold { background:linear-gradient(135deg,#7DD3C0,#5EC8B3 50%,#2A9B86); color:var(--burgundy-deep); box-shadow:0 4px 16px rgba(94,200,179,.3); }
     .btn-ghost { background:rgba(0,0,0,.25); color:var(--gold-light); border-color:rgba(94,200,179,.35); }
-    .filter-bar select { padding:.6rem .75rem; border-radius:10px; border:1px solid rgba(94,200,179,.3); background:var(--bg-input); color:var(--text); font-family:inherit; font-size:.85rem; }
+    .filter-bar { display:flex; gap:.55rem; flex-wrap:wrap; align-items:center; }
+    .filter-bar select,
+    .filter-bar input[type="search"] {
+        padding:.6rem .75rem; border-radius:10px; border:1px solid rgba(94,200,179,.3);
+        background:var(--bg-input); color:var(--text); font-family:inherit; font-size:.85rem; outline:none;
+    }
+    .filter-bar input[type="search"] { min-width:140px; }
+    .filter-bar input[type="search"]:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(94,200,179,.12); }
     .table-wrap { overflow-x:auto; border-radius:14px; border:1px solid rgba(94,200,179,.18); background:var(--surface); }
     .data-table { width:100%; border-collapse:collapse; min-width:820px; }
     .empty-row td { text-align:center; color:var(--text-muted); padding:2rem; }
@@ -23,15 +30,19 @@
     <div class="page-toolbar">
         <h2>Stock Dépôt{{ $lockedDepot ? ' — '.$depotLabel : '' }}</h2>
         <div class="toolbar-actions">
-            @if (count($depotOptions) > 1)
-                <form method="GET" class="filter-bar">
-                    <select name="depot" onchange="this.form.submit()">
-                        @foreach ($depotOptions as $key => $label)
-                            <option value="{{ $key }}" @selected($depot === $key)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </form>
-            @endif
+            <div class="filter-bar" id="stockDepotFilters">
+                @if (count($depotOptions) > 1)
+                    <form method="GET">
+                        <select name="depot" onchange="this.form.submit()">
+                            @foreach ($depotOptions as $key => $label)
+                                <option value="{{ $key }}" @selected($depot === $key)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </form>
+                @endif
+                <input type="search" data-filter="ref" placeholder="Réf" autocomplete="off">
+                <input type="search" data-filter="designation" placeholder="Désignation" autocomplete="off">
+            </div>
             @if (!empty($canAdjust))
                 <a href="{{ route('stock.ajuster', ['depot' => $depot]) }}" class="btn btn-gold">Ajuster</a>
             @endif
@@ -40,7 +51,7 @@
     </div>
 
     <div class="table-wrap">
-        <table class="data-table">
+        <table class="data-table" id="stockDepotTable">
             <thead>
                 <tr>
                     <th>Réf</th>
@@ -52,7 +63,9 @@
             </thead>
             <tbody>
                 @forelse ($stockRows as $row)
-                    <tr>
+                    <tr data-row
+                        data-ref="{{ mb_strtolower($row['ref']) }}"
+                        data-designation="{{ mb_strtolower($row['designation']) }}">
                         <td>{{ $row['ref'] }}</td>
                         <td>{{ $row['designation'] }}</td>
                         <td>{{ number_format($row['qte_actuelle'], 2, ',', ' ') }}</td>
@@ -64,8 +77,13 @@
                 @empty
                     <tr class="empty-row"><td colspan="5">Aucun stock pour ce dépôt.</td></tr>
                 @endforelse
+                <tr class="empty-row js-filter-empty" style="display:none;"><td colspan="5">Aucun résultat pour cette recherche.</td></tr>
             </tbody>
         </table>
     </div>
 </div>
+
+<script>
+    damioBindTableFilters('stockDepotTable', { filterRoot: '#stockDepotFilters [data-filter]' });
+</script>
 @endsection
