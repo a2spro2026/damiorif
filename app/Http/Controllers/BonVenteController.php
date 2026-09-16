@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BonVente;
 use App\Models\Client;
+use App\Support\Depots;
 use App\Support\Echeances;
 use App\Support\StockDepotService;
 use App\Support\TypesReglement;
@@ -164,7 +165,7 @@ class BonVenteController extends Controller
         return view('clients.bon-vente.print', [
             'bon' => $bonVente,
             'typesReglement' => TypesReglement::options(),
-            'depots' => UserAccess::depotOptionsFor(auth()->user()),
+            'depots' => Depots::options(),
         ]);
     }
 

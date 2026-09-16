@@ -1633,6 +1633,8 @@
             if (!tbody) return;
             var inputs = document.querySelectorAll((options && options.filterRoot) || '.filter-bar [data-filter]');
             var emptyRow = tbody.querySelector('.js-filter-empty') || tbody.querySelector('.empty-row');
+            var manual = !!(options && options.manual);
+            var trigger = (options && options.trigger) ? document.querySelector(options.trigger) : null;
 
             function apply() {
                 var filters = {};
@@ -1668,10 +1670,24 @@
                 }
             }
 
-            inputs.forEach(function (input) {
-                input.addEventListener('input', apply);
-            });
-            apply();
+            if (manual) {
+                if (trigger) {
+                    trigger.addEventListener('click', apply);
+                }
+                inputs.forEach(function (input) {
+                    input.addEventListener('keydown', function (e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            apply();
+                        }
+                    });
+                });
+            } else {
+                inputs.forEach(function (input) {
+                    input.addEventListener('input', apply);
+                });
+                apply();
+            }
         };
 
         window.damioFormatMoney = function (n) {

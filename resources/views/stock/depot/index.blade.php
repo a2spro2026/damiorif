@@ -19,6 +19,13 @@
     }
     .filter-bar input[type="search"] { min-width:140px; }
     .filter-bar input[type="search"]:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(94,200,179,.12); }
+    .icon-btn {
+        width:36px; height:36px; border-radius:10px; border:1px solid rgba(94,200,179,.35);
+        background:var(--bg-input); color:var(--gold); display:inline-flex; align-items:center; justify-content:center;
+        cursor:pointer; flex-shrink:0;
+    }
+    .icon-btn:hover { background:rgba(94,200,179,.18); }
+    .icon-btn svg { width:17px; height:17px; }
     .table-wrap { overflow-x:auto; border-radius:14px; border:1px solid rgba(94,200,179,.18); background:var(--surface); }
     .data-table { width:100%; border-collapse:collapse; min-width:820px; }
     .empty-row td { text-align:center; color:var(--text-muted); padding:2rem; }
@@ -42,6 +49,12 @@
                 @endif
                 <input type="search" data-filter="ref" placeholder="Réf" autocomplete="off">
                 <input type="search" data-filter="designation" placeholder="Désignation" autocomplete="off">
+                <button type="button" class="icon-btn" id="stockDepotSearchBtn" title="Rechercher" aria-label="Rechercher">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <circle cx="11" cy="11" r="7"/>
+                        <path d="M20 20l-3.5-3.5"/>
+                    </svg>
+                </button>
             </div>
             @if (!empty($canAdjust))
                 <a href="{{ route('stock.ajuster', ['depot' => $depot]) }}" class="btn btn-gold">Ajuster</a>
@@ -84,6 +97,10 @@
 </div>
 
 <script>
-    damioBindTableFilters('stockDepotTable', { filterRoot: '#stockDepotFilters [data-filter]' });
+    damioBindTableFilters('stockDepotTable', {
+        filterRoot: '#stockDepotFilters [data-filter]',
+        manual: true,
+        trigger: '#stockDepotSearchBtn'
+    });
 </script>
 @endsection
