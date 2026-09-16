@@ -36,33 +36,62 @@
     .field select option { background:#2d0006; }
     .lines-head { display:flex; align-items:center; justify-content:space-between; margin:1rem 0 .6rem; }
     .lines-head h4 { color:var(--gold-light); font-size:.85rem; letter-spacing:.06em; text-transform:uppercase; }
+    .lines-panel { position:relative; z-index:5; }
+    .lines-panel .table-wrap { overflow:visible; border-radius:14px; border:1px solid rgba(94,200,179,.18); background:transparent; }
     .lines-table { width:100%; border-collapse:collapse; min-width:900px; }
-    .lines-table .col-ref { width:110px; }
-    .lines-table .col-des { width:auto; }
+    .lines-table .col-ref { width:130px; min-width:120px; }
+    .lines-table .col-des { width:auto; min-width:180px; }
     .lines-table .col-sm { width:100px; }
     .lines-table .col-num { width:85px; }
     .lines-table .col-stock { width:72px; text-align:center; }
     .lines-table .stock-zero { color:#ff9a9a; font-weight:700; font-size:.78rem; }
     .lines-table tr.row-no-stock input.js-qte { opacity:.5; pointer-events:none; }
-    .lines-table input { width:100%; padding:.45rem .5rem; border-radius:8px; border:1px solid rgba(94,200,179,.25); background:var(--bg-input); color:var(--text); font-size:.82rem; font-family:inherit; }
-    .ref-ac-wrap { position:relative; }
-    .ref-ac-box {
-        display:none; position:absolute; left:0; right:0; top:calc(100% + 2px); z-index:40;
-        max-height:220px; overflow:auto; border-radius:10px;
-        border:1px solid rgba(94,200,179,.35);
-        background:linear-gradient(160deg,rgba(45,0,6,.98),rgba(27,10,16,.99));
-        box-shadow:0 12px 28px rgba(0,0,0,.45);
+    .lines-table th { font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:var(--gold-light); padding:.45rem .35rem; text-align:left; }
+    .lines-table td { padding:.28rem .25rem; vertical-align:middle; }
+    .lines-table input {
+        width:100%; padding:.5rem .55rem; border-radius:8px; border:1px solid rgba(94,200,179,.28);
+        background:var(--bg-input); color:#0F172A; font-size:.84rem; font-family:inherit; outline:none;
     }
-    .ref-ac-box.open { display:block; }
+    .lines-table input:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(94,200,179,.14); }
+    .ref-ac-portal {
+        position:fixed; z-index:4000; display:none;
+        min-width:280px; max-width:min(420px, calc(100vw - 24px)); max-height:280px;
+        overflow:auto; border-radius:12px;
+        border:1px solid rgba(94,200,179,.45);
+        background:#1a0a0e;
+        box-shadow:0 18px 48px rgba(0,0,0,.55), 0 0 0 1px rgba(94,200,179,.08);
+        padding:.3rem;
+    }
+    .ref-ac-portal.open { display:block; }
+    .ref-ac-portal-head {
+        padding:.45rem .65rem .35rem; font-size:.68rem; font-weight:700; letter-spacing:.08em;
+        text-transform:uppercase; color:rgba(168,230,216,.85); border-bottom:1px solid rgba(94,200,179,.18);
+        margin-bottom:.2rem;
+    }
     .ref-ac-item {
-        display:flex; flex-direction:column; gap:.1rem; width:100%; text-align:left;
-        padding:.45rem .6rem; border:0; border-bottom:1px solid rgba(94,200,179,.12);
-        background:transparent; color:var(--text); cursor:pointer; font-family:inherit;
+        display:grid; grid-template-columns:88px 1fr auto; gap:.55rem; align-items:center;
+        width:100%; text-align:left; padding:.55rem .65rem; border:0; border-radius:8px;
+        background:transparent; color:#F8FAFC; cursor:pointer; font-family:inherit;
     }
-    .ref-ac-item:last-child { border-bottom:0; }
-    .ref-ac-item:hover, .ref-ac-item.active { background:rgba(94,200,179,.14); }
-    .ref-ac-item strong { color:var(--gold); font-size:.82rem; }
-    .ref-ac-item span { color:var(--text-soft); font-size:.72rem; }
+    .ref-ac-item:hover, .ref-ac-item.active { background:rgba(94,200,179,.16); }
+    .ref-ac-item .ac-ref { color:#5EC8B3; font-weight:800; font-size:.88rem; letter-spacing:.02em; }
+    .ref-ac-item .ac-des { color:rgba(248,250,252,.88); font-size:.8rem; line-height:1.25; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .ref-ac-item .ac-stock { color:rgba(168,230,216,.9); font-size:.72rem; font-weight:700; white-space:nowrap; }
+    .ref-ac-empty {
+        padding:.85rem .75rem; color:rgba(248,250,252,.55); font-size:.82rem; text-align:center;
+    }
+    html[data-theme="light"] .ref-ac-portal {
+        background:#FFFFFF; border-color:rgba(15,23,42,.12);
+        box-shadow:0 18px 40px rgba(15,23,42,.18);
+    }
+    html[data-theme="light"] .ref-ac-portal-head { color:#0F766E; border-bottom-color:rgba(15,23,42,.08); }
+    html[data-theme="light"] .ref-ac-item { color:#0F172A; }
+    html[data-theme="light"] .ref-ac-item:hover,
+    html[data-theme="light"] .ref-ac-item.active { background:rgba(94,200,179,.18); }
+    html[data-theme="light"] .ref-ac-item .ac-ref { color:#0F766E; }
+    html[data-theme="light"] .ref-ac-item .ac-des { color:#334155; }
+    html[data-theme="light"] .ref-ac-item .ac-stock { color:#0F766E; }
+    html[data-theme="light"] .ref-ac-empty { color:#64748B; }
     .totals-bar { display:flex; justify-content:flex-end; gap:1.5rem; margin-top:.85rem; padding-top:.75rem; border-top:1px solid rgba(94,200,179,.18); color:var(--gold-light); font-weight:700; }
     .modal-footer { display:flex; justify-content:flex-end; gap:.65rem; margin-top:1.1rem; padding-top:1rem; border-top:1px solid rgba(94,200,179,.18); }
     .empty-row td { text-align:center; color:var(--text-muted); padding:2rem; }
@@ -261,6 +290,7 @@
                 </button>
             </div>
 
+            <div class="lines-panel">
             <div class="table-wrap">
                 <table class="lines-table">
                     <thead>
@@ -278,6 +308,7 @@
                     </thead>
                     <tbody id="linesBody"></tbody>
                 </table>
+            </div>
             </div>
 
             <div class="totals-bar">
@@ -352,110 +383,188 @@
         refreshLineStock(tr);
     }
 
+    let refAcState = {
+        portal: null,
+        input: null,
+        tr: null,
+        hits: [],
+        activeIdx: -1,
+    };
+
+    function ensureRefPortal() {
+        if (refAcState.portal) return refAcState.portal;
+        const portal = document.createElement('div');
+        portal.id = 'refAcPortal';
+        portal.className = 'ref-ac-portal';
+        portal.setAttribute('role', 'listbox');
+        document.body.appendChild(portal);
+        refAcState.portal = portal;
+
+        window.addEventListener('scroll', () => {
+            if (portal.classList.contains('open') && refAcState.input) positionRefPortal();
+        }, true);
+        window.addEventListener('resize', () => {
+            if (portal.classList.contains('open') && refAcState.input) positionRefPortal();
+        });
+        document.addEventListener('mousedown', (e) => {
+            if (!portal.classList.contains('open')) return;
+            if (portal.contains(e.target) || e.target === refAcState.input) return;
+            closeRefPortal();
+        });
+        return portal;
+    }
+
+    function closeRefPortal() {
+        const portal = refAcState.portal;
+        if (!portal) return;
+        portal.classList.remove('open');
+        portal.innerHTML = '';
+        portal.style.display = 'none';
+        refAcState.input = null;
+        refAcState.tr = null;
+        refAcState.hits = [];
+        refAcState.activeIdx = -1;
+    }
+
+    function positionRefPortal() {
+        const portal = refAcState.portal;
+        const input = refAcState.input;
+        if (!portal || !input) return;
+        const rect = input.getBoundingClientRect();
+        const width = Math.max(320, Math.min(420, window.innerWidth - 24));
+        let left = rect.left;
+        if (left + width > window.innerWidth - 12) {
+            left = Math.max(12, window.innerWidth - width - 12);
+        }
+        portal.style.display = 'block';
+        portal.classList.add('open');
+        portal.style.width = width + 'px';
+        portal.style.left = left + 'px';
+        portal.style.top = '0px';
+        const h = Math.min(280, portal.scrollHeight || 200);
+        let top = rect.bottom + 6;
+        if (top + h > window.innerHeight - 12 && rect.top > h + 12) {
+            top = Math.max(12, rect.top - h - 6);
+        }
+        portal.style.top = top + 'px';
+    }
+
+    function pickRefProduct(product) {
+        const input = refAcState.input;
+        const tr = refAcState.tr;
+        if (!product || !input || !tr) return;
+        input.value = product.ref || '';
+        const des = tr.querySelector('.js-designation');
+        if (des) des.value = product.designation || '';
+        closeRefPortal();
+        refreshLineStock(tr);
+        tr.querySelector('.js-qte')?.focus();
+    }
+
+    function renderRefSuggestions(input, tr) {
+        const portal = ensureRefPortal();
+        refAcState.input = input;
+        refAcState.tr = tr;
+        refAcState.activeIdx = -1;
+        refAcState.hits = [];
+
+        if (readonlyMode) {
+            closeRefPortal();
+            return;
+        }
+
+        const q = (input.value || '').trim().toLowerCase();
+        const depot = getActiveDepot();
+
+        if (!depot) {
+            portal.innerHTML = '<div class="ref-ac-empty">Sélectionnez d’abord un dépôt.</div>';
+            positionRefPortal();
+            return;
+        }
+
+        if (!q) {
+            closeRefPortal();
+            return;
+        }
+
+        refAcState.hits = productsForActiveDepot()
+            .filter(p => (p.ref || '').toLowerCase().startsWith(q))
+            .slice(0, 80);
+
+        if (!refAcState.hits.length) {
+            portal.innerHTML = '<div class="ref-ac-empty">Aucune référence ne commence par « ' + escapeHtml(input.value.trim()) + ' ».</div>';
+            positionRefPortal();
+            return;
+        }
+
+        const head = '<div class="ref-ac-portal-head">' + refAcState.hits.length + ' référence' + (refAcState.hits.length > 1 ? 's' : '') + '</div>';
+        portal.innerHTML = head + refAcState.hits.map((p, idx) => {
+            const stock = Number(p.qte || 0);
+            return `<button type="button" class="ref-ac-item" role="option" data-idx="${idx}">
+                <span class="ac-ref">${escapeHtml(p.ref)}</span>
+                <span class="ac-des" title="${escapeHtml(p.designation)}">${escapeHtml(p.designation)}</span>
+                <span class="ac-stock">${formatMoney(stock)}</span>
+            </button>`;
+        }).join('');
+
+        portal.querySelectorAll('.ref-ac-item').forEach((btn) => {
+            btn.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                pickRefProduct(refAcState.hits[Number(btn.dataset.idx)]);
+            });
+        });
+        positionRefPortal();
+    }
+
     function bindRefAutocomplete(tr) {
         const input = tr.querySelector('.js-ref');
         if (!input || input.dataset.acBound) return;
         input.dataset.acBound = '1';
 
-        const wrap = document.createElement('div');
-        wrap.className = 'ref-ac-wrap';
-        input.parentNode.insertBefore(wrap, input);
-        wrap.appendChild(input);
-
-        const box = document.createElement('div');
-        box.className = 'ref-ac-box';
-        wrap.appendChild(box);
-
-        let activeIdx = -1;
-
-        function closeBox() {
-            box.classList.remove('open');
-            box.innerHTML = '';
-            activeIdx = -1;
-        }
-
-        function pick(product) {
-            input.value = product.ref || '';
-            const des = tr.querySelector('.js-designation');
-            if (des) des.value = product.designation || '';
-            closeBox();
-            refreshLineStock(tr);
-        }
-
-        function render() {
-            const q = (input.value || '').trim().toLowerCase();
-            box.innerHTML = '';
-            activeIdx = -1;
-            if (!q || readonlyMode) {
-                closeBox();
-                return;
-            }
-
-            const hits = productsForActiveDepot()
-                .filter(p => (p.ref || '').toLowerCase().startsWith(q))
-                .slice(0, 80);
-
-            if (!hits.length) {
-                closeBox();
-                return;
-            }
-
-            hits.forEach((p, idx) => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'ref-ac-item';
-                btn.dataset.idx = String(idx);
-                btn.innerHTML = `<strong>${escapeHtml(p.ref)}</strong><span>${escapeHtml(p.designation)}</span>`;
-                btn.addEventListener('mousedown', (e) => {
-                    e.preventDefault();
-                    pick(p);
-                });
-                box.appendChild(btn);
-            });
-            box._hits = hits;
-            box.classList.add('open');
-        }
-
         input.addEventListener('input', () => {
-            render();
+            renderRefSuggestions(input, tr);
             refreshLineStock(tr);
         });
-        input.addEventListener('focus', render);
-        input.addEventListener('click', render);
+        input.addEventListener('focus', () => renderRefSuggestions(input, tr));
+        input.addEventListener('click', () => renderRefSuggestions(input, tr));
         input.addEventListener('blur', () => {
             setTimeout(() => {
-                applyProductFromRef(tr, true);
-                closeBox();
-            }, 160);
+                if (refAcState.input === input) {
+                    applyProductFromRef(tr, true);
+                    closeRefPortal();
+                }
+            }, 180);
         });
         input.addEventListener('keydown', (e) => {
-            if (!box.classList.contains('open')) return;
-            const items = Array.from(box.querySelectorAll('.ref-ac-item'));
-            if (!items.length) return;
+            if (!refAcState.portal?.classList.contains('open') || refAcState.input !== input) return;
+            const items = Array.from(refAcState.portal.querySelectorAll('.ref-ac-item'));
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
-                activeIdx = Math.min(items.length - 1, activeIdx + 1);
+                if (!items.length) return;
+                refAcState.activeIdx = Math.min(items.length - 1, refAcState.activeIdx + 1);
             } else if (e.key === 'ArrowUp') {
                 e.preventDefault();
-                activeIdx = Math.max(0, activeIdx - 1);
-            } else if (e.key === 'Enter' && activeIdx >= 0) {
+                if (!items.length) return;
+                refAcState.activeIdx = Math.max(0, refAcState.activeIdx - 1);
+            } else if (e.key === 'Enter' && refAcState.activeIdx >= 0) {
                 e.preventDefault();
-                pick(box._hits[activeIdx]);
+                pickRefProduct(refAcState.hits[refAcState.activeIdx]);
                 return;
             } else if (e.key === 'Escape') {
-                closeBox();
+                closeRefPortal();
                 return;
             } else {
                 return;
             }
-            items.forEach((el, i) => el.classList.toggle('active', i === activeIdx));
-            items[activeIdx]?.scrollIntoView({ block: 'nearest' });
+            items.forEach((el, i) => el.classList.toggle('active', i === refAcState.activeIdx));
+            items[refAcState.activeIdx]?.scrollIntoView({ block: 'nearest' });
         });
     }
 
     function openModal() { modal.classList.add('open'); }
     function closeModal() {
         modal.classList.remove('open');
+        closeRefPortal();
         setFormReadonly(false);
     }
 
