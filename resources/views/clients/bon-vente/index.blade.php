@@ -77,6 +77,8 @@
     .ref-ac-item .ac-ref { color:#5EC8B3; font-weight:800; font-size:.88rem; letter-spacing:.02em; }
     .ref-ac-item .ac-des { color:rgba(248,250,252,.88); font-size:.8rem; line-height:1.25; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .ref-ac-item .ac-stock { color:rgba(168,230,216,.9); font-size:.72rem; font-weight:700; white-space:nowrap; }
+    .ref-ac-item.is-empty { opacity:.55; }
+    .ref-ac-item.is-empty .ac-stock { color:#ff9a9a; }
     .ref-ac-empty {
         padding:.85rem .75rem; color:rgba(248,250,252,.55); font-size:.82rem; text-align:center;
     }
@@ -453,6 +455,10 @@
         const input = refAcState.input;
         const tr = refAcState.tr;
         if (!product || !input || !tr) return;
+        if (Number(product.qte || 0) <= 0.0005) {
+            alert('Stock insuffisant pour la référence ' + (product.ref || '') + '.');
+            return;
+        }
         input.value = product.ref || '';
         const des = tr.querySelector('.js-designation');
         if (des) des.value = product.designation || '';
@@ -500,10 +506,11 @@
         const head = '<div class="ref-ac-portal-head">' + refAcState.hits.length + ' référence' + (refAcState.hits.length > 1 ? 's' : '') + '</div>';
         portal.innerHTML = head + refAcState.hits.map((p, idx) => {
             const stock = Number(p.qte || 0);
-            return `<button type="button" class="ref-ac-item" role="option" data-idx="${idx}">
+            const empty = stock <= 0.0005;
+            return `<button type="button" class="ref-ac-item${empty ? ' is-empty' : ''}" role="option" data-idx="${idx}">
                 <span class="ac-ref">${escapeHtml(p.ref)}</span>
                 <span class="ac-des" title="${escapeHtml(p.designation)}">${escapeHtml(p.designation)}</span>
-                <span class="ac-stock">${formatMoney(stock)}</span>
+                <span class="ac-stock">${empty ? 'Rupture' : formatMoney(stock)}</span>
             </button>`;
         }).join('');
 

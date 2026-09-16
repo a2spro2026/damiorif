@@ -37,45 +37,39 @@ class BonVenteController extends Controller
         $stockByDepot = [];
         $productsByDepot = [];
         foreach (array_keys($depotOptions) as $depot) {
-            $stockByDepot[$depot] = StockDepotService::stockMapForDepot($depot);
-            $stockRows = StockDepotService::stockForDepot($depot)
-                ->filter(fn (array $row) => $row['qte'] > 0.0005)
-                ->values();
+            $stockMap = StockDepotService::stockMapForDepot($depot);
+            $stockByDepot[$depot] = $stockMap;
 
-            $fromStock = $stockRows
+            $fromStock = StockDepotService::stockForDepot($depot)
                 ->filter(fn (array $row) => trim((string) $row['ref']) !== '' && trim((string) $row['ref']) !== '—')
                 ->map(fn (array $row) => [
                     'ref' => $row['ref'],
                     'designation' => $row['designation'],
-                    'qte' => $row['qte'],
+                    'qte' => (float) $row['qte'],
                 ]);
 
-            // Complète avec le catalogue produits pour les refs connues en stock (clé r:xxx).
             $seen = $fromStock->mapWithKeys(fn (array $row) => [mb_strtolower($row['ref']) => true]);
-            $fromCatalogue = collect($catalogue)
-                ->filter(function (array $p) use ($stockByDepot, $depot, $seen) {
-                    $ref = trim((string) ($p['ref'] ?? ''));
-                    if ($ref === '' || isset($seen[mb_strtolower($ref)])) {
-                        return false;
-                    }
-                    $qty = $stockByDepot[$depot][StockDepotService::productKey($ref, $p['designation'] ?? '')] ?? 0;
 
-                    return $qty > 0.0005;
+            $fromCatalogue = collect($catalogue)
+                ->filter(function (array $p) use ($seen) {
+                    $ref = trim((string) ($p['ref'] ?? ''));
+
+                    return $ref !== '' && ! isset($seen[mb_strtolower($ref)]);
                 })
-                ->map(function (array $p) use ($stockByDepot, $depot) {
+                ->map(function (array $p) use ($stockMap) {
                     $ref = $p['ref'];
                     $des = $p['designation'] ?? '';
 
                     return [
                         'ref' => $ref,
                         'designation' => $des,
-                        'qte' => $stockByDepot[$depot][StockDepotService::productKey($ref, $des)] ?? 0,
+                        'qte' => (float) ($stockMap[StockDepotService::productKey($ref, $des)] ?? 0),
                     ];
                 });
 
             $productsByDepot[$depot] = $fromStock
                 ->concat($fromCatalogue)
-                ->sortBy(fn (array $row) => mb_strtolower($row['ref']))
+                ->sortBy(fn (array $row) => ($row['qte'] > 0.0005 ? '0-' : '1-').mb_strtolower($row['ref']))
                 ->values()
                 ->all();
         }
