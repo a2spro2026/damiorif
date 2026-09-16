@@ -32,8 +32,20 @@ class BonVenteController extends Controller
 
         $depotOptions = UserAccess::depotOptionsFor($user);
         $stockByDepot = [];
+        $productsByDepot = [];
         foreach (array_keys($depotOptions) as $depot) {
             $stockByDepot[$depot] = StockDepotService::stockMapForDepot($depot);
+            $productsByDepot[$depot] = StockDepotService::stockForDepot($depot)
+                ->filter(fn (array $row) => $row['qte'] > 0.0005
+                    && trim((string) $row['ref']) !== ''
+                    && trim((string) $row['ref']) !== '—')
+                ->map(fn (array $row) => [
+                    'ref' => $row['ref'],
+                    'designation' => $row['designation'],
+                    'qte' => $row['qte'],
+                ])
+                ->values()
+                ->all();
         }
 
         return view('clients.bon-vente.index', [
@@ -42,6 +54,7 @@ class BonVenteController extends Controller
             'typesReglement' => TypesReglement::options(),
             'depots' => $depotOptions,
             'stockByDepot' => $stockByDepot,
+            'productsByDepot' => $productsByDepot,
             'lockedDepot' => $depotKey,
             'echeances' => Echeances::options(),
             'nextNumero' => BonVente::nextNumero(),

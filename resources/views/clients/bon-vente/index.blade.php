@@ -37,7 +37,7 @@
     .lines-head { display:flex; align-items:center; justify-content:space-between; margin:1rem 0 .6rem; }
     .lines-head h4 { color:var(--gold-light); font-size:.85rem; letter-spacing:.06em; text-transform:uppercase; }
     .lines-table { width:100%; border-collapse:collapse; min-width:900px; }
-    .lines-table .col-ref { width:90px; }
+    .lines-table .col-ref { width:110px; }
     .lines-table .col-des { width:auto; }
     .lines-table .col-sm { width:100px; }
     .lines-table .col-num { width:85px; }
@@ -45,6 +45,24 @@
     .lines-table .stock-zero { color:#ff9a9a; font-weight:700; font-size:.78rem; }
     .lines-table tr.row-no-stock input.js-qte { opacity:.5; pointer-events:none; }
     .lines-table input { width:100%; padding:.45rem .5rem; border-radius:8px; border:1px solid rgba(94,200,179,.25); background:var(--bg-input); color:var(--text); font-size:.82rem; font-family:inherit; }
+    .ref-ac-wrap { position:relative; }
+    .ref-ac-box {
+        display:none; position:absolute; left:0; right:0; top:calc(100% + 2px); z-index:40;
+        max-height:220px; overflow:auto; border-radius:10px;
+        border:1px solid rgba(94,200,179,.35);
+        background:linear-gradient(160deg,rgba(45,0,6,.98),rgba(27,10,16,.99));
+        box-shadow:0 12px 28px rgba(0,0,0,.45);
+    }
+    .ref-ac-box.open { display:block; }
+    .ref-ac-item {
+        display:flex; flex-direction:column; gap:.1rem; width:100%; text-align:left;
+        padding:.45rem .6rem; border:0; border-bottom:1px solid rgba(94,200,179,.12);
+        background:transparent; color:var(--text); cursor:pointer; font-family:inherit;
+    }
+    .ref-ac-item:last-child { border-bottom:0; }
+    .ref-ac-item:hover, .ref-ac-item.active { background:rgba(94,200,179,.14); }
+    .ref-ac-item strong { color:var(--gold); font-size:.82rem; }
+    .ref-ac-item span { color:var(--text-soft); font-size:.72rem; }
     .totals-bar { display:flex; justify-content:flex-end; gap:1.5rem; margin-top:.85rem; padding-top:.75rem; border-top:1px solid rgba(94,200,179,.18); color:var(--gold-light); font-weight:700; }
     .modal-footer { display:flex; justify-content:flex-end; gap:.65rem; margin-top:1.1rem; padding-top:1rem; border-top:1px solid rgba(94,200,179,.18); }
     .empty-row td { text-align:center; color:var(--text-muted); padding:2rem; }
@@ -285,9 +303,139 @@
     const today = @json(now()->format('Y-m-d'));
     const lockedDepot = @json($lockedDepot ?? null);
     const stockByDepot = @json($stockByDepot);
+    const productsByDepot = @json($productsByDepot);
     let lineIndex = 0;
     let readonlyMode = false;
     let stockAdjustment = {};
+
+    function escapeHtml(s) {
+        return String(s ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function productsForActiveDepot() {
+        const depot = getActiveDepot();
+        return productsByDepot[depot] || [];
+    }
+
+    function applyProductFromRef(tr, exactOnly = false) {
+        const ref = (tr.querySelector('.js-ref')?.value || '').trim();
+        if (!ref) return;
+        const list = productsForActiveDepot();
+        const hit = list.find(r => (r.ref || '').toLowerCase() === ref.toLowerCase())
+            || (!exactOnly ? list.find(r => (r.ref || '').toLowerCase().startsWith(ref.toLowerCase())) : null);
+        if (!hit) return;
+        tr.querySelector('.js-ref').value = hit.ref;
+        const des = tr.querySelector('.js-designation');
+        if (des && (!des.value.trim() || exactOnly || des.value.trim().toLowerCase() !== hit.designation.toLowerCase())) {
+            des.value = hit.designation;
+        }
+        refreshLineStock(tr);
+    }
+
+    function bindRefAutocomplete(tr) {
+        const input = tr.querySelector('.js-ref');
+        if (!input || input.dataset.acBound) return;
+        input.dataset.acBound = '1';
+
+        const wrap = document.createElement('div');
+        wrap.className = 'ref-ac-wrap';
+        input.parentNode.insertBefore(wrap, input);
+        wrap.appendChild(input);
+
+        const box = document.createElement('div');
+        box.className = 'ref-ac-box';
+        wrap.appendChild(box);
+
+        let activeIdx = -1;
+
+        function closeBox() {
+            box.classList.remove('open');
+            box.innerHTML = '';
+            activeIdx = -1;
+        }
+
+        function pick(product) {
+            input.value = product.ref || '';
+            const des = tr.querySelector('.js-designation');
+            if (des) des.value = product.designation || '';
+            closeBox();
+            refreshLineStock(tr);
+        }
+
+        function render() {
+            const q = (input.value || '').trim().toLowerCase();
+            box.innerHTML = '';
+            activeIdx = -1;
+            if (!q || readonlyMode) {
+                closeBox();
+                return;
+            }
+
+            const hits = productsForActiveDepot()
+                .filter(p => (p.ref || '').toLowerCase().startsWith(q))
+                .slice(0, 80);
+
+            if (!hits.length) {
+                closeBox();
+                return;
+            }
+
+            hits.forEach((p, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'ref-ac-item';
+                btn.dataset.idx = String(idx);
+                btn.innerHTML = `<strong>${escapeHtml(p.ref)}</strong><span>${escapeHtml(p.designation)}</span>`;
+                btn.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    pick(p);
+                });
+                box.appendChild(btn);
+            });
+            box._hits = hits;
+            box.classList.add('open');
+        }
+
+        input.addEventListener('input', () => {
+            render();
+            refreshLineStock(tr);
+        });
+        input.addEventListener('focus', render);
+        input.addEventListener('click', render);
+        input.addEventListener('blur', () => {
+            setTimeout(() => {
+                applyProductFromRef(tr, true);
+                closeBox();
+            }, 160);
+        });
+        input.addEventListener('keydown', (e) => {
+            if (!box.classList.contains('open')) return;
+            const items = Array.from(box.querySelectorAll('.ref-ac-item'));
+            if (!items.length) return;
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activeIdx = Math.min(items.length - 1, activeIdx + 1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activeIdx = Math.max(0, activeIdx - 1);
+            } else if (e.key === 'Enter' && activeIdx >= 0) {
+                e.preventDefault();
+                pick(box._hits[activeIdx]);
+                return;
+            } else if (e.key === 'Escape') {
+                closeBox();
+                return;
+            } else {
+                return;
+            }
+            items.forEach((el, i) => el.classList.toggle('active', i === activeIdx));
+            items[activeIdx]?.scrollIntoView({ block: 'nearest' });
+        });
+    }
 
     function openModal() { modal.classList.add('open'); }
     function closeModal() {
@@ -407,7 +555,8 @@
         `;
         linesBody.appendChild(tr);
         if (!readonlyMode) {
-            tr.querySelector('.js-ref')?.addEventListener('input', () => refreshLineStock(tr));
+            bindRefAutocomplete(tr);
+            tr.querySelector('.js-ref')?.addEventListener('change', () => applyProductFromRef(tr, true));
             tr.querySelector('.js-designation')?.addEventListener('input', () => refreshLineStock(tr));
         }
         tr.querySelectorAll('.js-qte, .js-pu').forEach(el => el.addEventListener('input', () => recalcLine(tr)));
