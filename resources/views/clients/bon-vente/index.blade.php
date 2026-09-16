@@ -25,10 +25,10 @@
     .modal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; padding-bottom:.75rem; border-bottom:1px solid rgba(94,200,179,.2); }
     .modal-header h3 { font-family:'Fraunces', serif; color:var(--gold); font-size:1.2rem; }
     .form-grid { display:flex; flex-direction:column; gap:.75rem; margin-bottom:1rem; }
-    .form-row { display:grid; gap:.65rem .85rem; align-items:end; }
-    .form-row-date { grid-template-columns:160px; }
-    .form-row-client { grid-template-columns:140px 160px minmax(0,1fr); }
+    .form-row { display:grid; gap:.65rem .75rem; align-items:end; }
+    .form-row-top { grid-template-columns:138px 120px 150px minmax(140px, 1.1fr); }
     .form-row-meta { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .form-row-top .field-nom input { max-width:100%; }
     .field label { display:block; font-size:.68rem; text-transform:uppercase; letter-spacing:.06em; color:var(--gold-light); margin-bottom:.3rem; font-weight:600; }
     .field input,.field select { width:100%; padding:.55rem .65rem; border-radius:10px; border:1px solid rgba(94,200,179,.3); background:var(--bg-input); color:var(--text); font-family:inherit; font-size:.85rem; outline:none; }
     .field input:focus,.field select:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(94,200,179,.12); }
@@ -99,13 +99,11 @@
     .empty-row td { text-align:center; color:var(--text-muted); padding:2rem; }
     .fiche-page { padding:.75rem 1.25rem 1.25rem !important; margin-top:-.5rem; }
     @media (max-width:900px) {
-        .form-row-client { grid-template-columns:1fr 1fr; }
-        .form-row-client .field-nom { grid-column:1 / -1; }
+        .form-row-top { grid-template-columns:1fr 1fr; }
         .form-row-meta { grid-template-columns:1fr 1fr; }
     }
     @media (max-width:600px) {
-        .form-row-date,.form-row-client,.form-row-meta { grid-template-columns:1fr; }
-        .form-row-client .field-nom { grid-column:auto; }
+        .form-row-top,.form-row-meta { grid-template-columns:1fr; }
     }
 </style>
 
@@ -216,13 +214,11 @@
             <input type="hidden" name="_method" id="formMethod" value="POST">
 
             <div class="form-grid">
-                <div class="form-row form-row-date">
+                <div class="form-row form-row-top">
                     <div class="field">
                         <label for="field_date">Date</label>
                         <input type="date" name="date_bon" id="field_date" value="{{ now()->format('Y-m-d') }}" required>
                     </div>
-                </div>
-                <div class="form-row form-row-client">
                     <div class="field">
                         <label for="field_numero">N° Bon</label>
                         <input type="text" id="field_numero" value="{{ $nextNumero }}" readonly>
