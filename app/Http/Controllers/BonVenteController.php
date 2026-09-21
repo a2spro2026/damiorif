@@ -22,9 +22,11 @@ class BonVenteController extends Controller
     {
         $user = auth()->user();
         $depotKey = UserAccess::depotKey($user);
+        $isPrincipal = ! UserAccess::isDepotUser($user) || $depotKey === Depots::centralKey();
 
         $query = BonVente::query()->with(['lignes', 'client'])->orderByDesc('id');
-        if ($depotKey) {
+        // Dépôt principal : toutes les ventes (y compris régionales). Régional : son dépôt seulement.
+        if (! $isPrincipal && $depotKey) {
             $query->where('depot', $depotKey);
         }
 
@@ -32,7 +34,10 @@ class BonVenteController extends Controller
         $totalVentes = round((float) $bons->sum('montant'), 2);
         $totalSolde = round((float) $bons->sum('solde'), 2);
 
-        $depotOptions = UserAccess::depotOptionsFor($user);
+        $depotOptions = $isPrincipal
+            ? Depots::options()
+            : UserAccess::depotOptionsFor($user);
+        $filterDepots = $isPrincipal ? Depots::options() : [];
         $catalogue = ProduitReferenceService::catalogue();
         $stockByDepot = [];
         $productsByDepot = [];
@@ -76,12 +81,18 @@ class BonVenteController extends Controller
 
         return view('clients.bon-vente.index', [
             'bons' => $bons,
-            'clients' => Client::query()->forUser($user)->orderBy('nom_client')->get(['id', 'ref_client', 'nom_client', 'ville', 'type_reglement']),
+            'clients' => ($isPrincipal
+                ? Client::query()
+                : Client::query()->forUser($user)
+            )->orderBy('nom_client')->get(['id', 'ref_client', 'nom_client', 'ville', 'type_reglement']),
             'typesReglement' => TypesReglement::options(),
             'depots' => $depotOptions,
+            'depotLabels' => Depots::options(),
+            'filterDepots' => $filterDepots,
             'stockByDepot' => $stockByDepot,
             'productsByDepot' => $productsByDepot,
-            'lockedDepot' => $depotKey,
+            'lockedDepot' => $isPrincipal ? null : $depotKey,
+            'isPrincipal' => $isPrincipal,
             'echeances' => Echeances::options(),
             'nextNumero' => BonVente::nextNumero(),
             'totalAchats' => $totalVentes,
@@ -198,7 +209,10 @@ class BonVenteController extends Controller
     {
         $user = auth()->user();
         $depotKey = UserAccess::depotKey($user);
-        $allowedDepots = array_keys(UserAccess::depotOptionsFor($user));
+        $isPrincipal = ! UserAccess::isDepotUser($user) || $depotKey === Depots::centralKey();
+        $allowedDepots = $isPrincipal
+            ? array_keys(Depots::options())
+            : array_keys(UserAccess::depotOptionsFor($user));
 
         $data = $request->validate([
             'date_bon' => ['required', 'date'],
@@ -219,7 +233,8 @@ class BonVenteController extends Controller
             'lignes.*.designation.required' => 'La désignation est obligatoire.',
         ]);
 
-        if ($depotKey) {
+        // Régional : dépôt forcé. Principal : dépôt choisi librement.
+        if (! $isPrincipal && $depotKey) {
             $data['depot'] = $depotKey;
         }
 
@@ -228,8 +243,10 @@ class BonVenteController extends Controller
 
     private function assertDepotAccess(BonVente $bon): void
     {
-        $depotKey = UserAccess::depotKey(auth()->user());
-        if ($depotKey && $bon->depot !== $depotKey) {
+        $user = auth()->user();
+        $depotKey = UserAccess::depotKey($user);
+        $isPrincipal = ! UserAccess::isDepotUser($user) || $depotKey === Depots::centralKey();
+        if (! $isPrincipal && $depotKey && $bon->depot !== $depotKey) {
             abort(403, 'Ce bon n\'appartient pas à votre dépôt.');
         }
     }
@@ -238,6 +255,10 @@ class BonVenteController extends Controller
     {
         $user = auth()->user();
         $depotKey = UserAccess::depotKey($user);
+        $isPrincipal = ! UserAccess::isDepotUser($user) || $depotKey === Depots::centralKey();
+        if ($isPrincipal) {
+            return;
+        }
         if ($depotKey && ($client->depot !== $depotKey || (int) $client->user_id !== (int) $user->id)) {
             abort(403, 'Ce client n\'appartient pas à votre dépôt.');
         }

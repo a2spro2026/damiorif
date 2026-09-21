@@ -98,6 +98,81 @@
     .modal-footer { display:flex; justify-content:flex-end; gap:.65rem; margin-top:1.1rem; padding-top:1rem; border-top:1px solid rgba(94,200,179,.18); }
     .empty-row td { text-align:center; color:var(--text-muted); padding:2rem; }
     .fiche-page { padding:.75rem 1.25rem 1.25rem !important; margin-top:-.5rem; }
+    .search-rail {
+        display:flex; align-items:center; gap:.55rem; flex-wrap:wrap;
+        width:100%; margin-bottom:.95rem; padding:.55rem .65rem;
+        border-radius:14px; border:1px solid rgba(94,200,179,.22);
+        background:linear-gradient(135deg, rgba(94,200,179,.08), rgba(0,0,0,.18));
+        box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+        animation: searchRailIn .45s cubic-bezier(.22,1,.36,1) both;
+    }
+    @keyframes searchRailIn {
+        from { opacity:0; transform:translateY(-10px) scale(.985); }
+        to { opacity:1; transform:translateY(0) scale(1); }
+    }
+    .search-rail .filter-group {
+        display:flex; align-items:center; gap:.4rem; flex:1 1 auto; min-width:0; flex-wrap:wrap;
+    }
+    .search-rail .chip {
+        position:relative; display:flex; align-items:center;
+        flex:1 1 130px; min-width:110px; max-width:200px;
+        transition:transform .25s ease, box-shadow .25s ease;
+    }
+    .search-rail .chip:focus-within {
+        transform:translateY(-2px);
+        box-shadow:0 8px 22px rgba(94,200,179,.18);
+    }
+    .search-rail .chip-ico {
+        position:absolute; left:.7rem; width:15px; height:15px; color:var(--gold);
+        pointer-events:none; opacity:.85; z-index:1;
+    }
+    .search-rail select,
+    .search-rail input[type="search"],
+    .search-rail input[type="month"] {
+        width:100%; padding:.55rem .7rem; border-radius:10px;
+        border:1px solid rgba(94,200,179,.3); background:var(--bg-input); color:var(--text);
+        font-family:inherit; font-size:.84rem; outline:none;
+        transition:border-color .25s ease, box-shadow .25s ease;
+    }
+    .search-rail input[type="search"] { padding-left:2rem; }
+    .search-rail select,
+    .search-rail input[type="month"] { padding-left:.7rem; }
+    .search-rail select:focus,
+    .search-rail input:focus {
+        border-color:var(--gold); box-shadow:0 0 0 3px rgba(94,200,179,.14);
+    }
+    .search-rail .chip-mois { flex:0 1 150px; max-width:160px; }
+    .search-rail .chip-depot { flex:0 1 170px; max-width:190px; }
+    .search-rail select option { background:#2d0006; }
+    .search-actions { display:flex; align-items:center; gap:.4rem; margin-left:auto; }
+    .search-actions .icon-btn {
+        width:38px; height:38px; border-radius:11px;
+        background:linear-gradient(145deg, rgba(94,200,179,.16), rgba(0,0,0,.2));
+    }
+    .search-actions .icon-btn.search-go {
+        width:auto; padding:0 .95rem; gap:.4rem; font-size:.8rem; font-weight:700;
+        color:var(--burgundy-deep); background:linear-gradient(135deg,#7DD3C0,#5EC8B3 50%,#2A9B86); border-color:transparent;
+    }
+    .search-actions .icon-btn:hover {
+        transform:translateY(-2px) scale(1.04);
+        background:rgba(94,200,179,.24);
+        box-shadow:0 8px 18px rgba(94,200,179,.22);
+    }
+    .data-table tbody tr[data-row] {
+        transition:opacity .28s ease, transform .28s ease, background .2s ease;
+    }
+    .data-table tbody tr[data-row].is-hiding {
+        opacity:0; transform:translateX(12px); pointer-events:none;
+    }
+    html[data-theme="light"] .search-rail {
+        background:linear-gradient(135deg, rgba(94,200,179,.12), rgba(255,255,255,.9));
+        border-color:rgba(15,23,42,.1);
+    }
+    @media (max-width:720px) {
+        .search-rail .chip { max-width:none; flex:1 1 100%; }
+        .search-actions { width:100%; margin-left:0; }
+        .search-actions .icon-btn.search-go { flex:1; justify-content:center; }
+    }
     @media (max-width:900px) {
         .form-row-top { grid-template-columns:1fr 1fr; }
         .form-row-meta { grid-template-columns:1fr 1fr; }
@@ -129,10 +204,42 @@
         ['label' => 'Total Solde', 'value' => $totalSolde, 'id' => 'kpiSolde', 'unit' => 'MAD'],
     ]])
 
-    <div class="filter-bar">
-        <input type="search" data-filter="date" placeholder="Rechercher par date">
-        <input type="search" data-filter="client" placeholder="Nom client">
-        <input type="search" data-filter="numero" placeholder="N° Bon">
+    <div class="search-rail" id="bonVenteFilters">
+        <div class="filter-group">
+            <label class="chip chip-mois">
+                <input type="month" data-filter="mois" title="Mois" aria-label="Mois">
+            </label>
+            @if (!empty($isPrincipal))
+                <label class="chip chip-depot">
+                    <select data-filter="depot" title="Dépôt" aria-label="Dépôt">
+                        <option value="">Tous dépôts</option>
+                        @foreach ($filterDepots as $key => $label)
+                            <option value="{{ $key }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </label>
+            @endif
+            <label class="chip">
+                <svg class="chip-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <input type="search" data-filter="client" placeholder="Client" autocomplete="off">
+            </label>
+            <label class="chip">
+                <svg class="chip-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
+                <input type="search" data-filter="numero" placeholder="N° Bon" autocomplete="off">
+            </label>
+        </div>
+        <div class="search-actions">
+            <button type="button" class="icon-btn" id="bonVenteClearBtn" title="Effacer" aria-label="Effacer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+            <button type="button" class="icon-btn search-go" id="bonVenteSearchBtn" title="Rechercher" aria-label="Rechercher">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="15" height="15">
+                    <circle cx="11" cy="11" r="7"/>
+                    <path d="M20 20l-3.5-3.5"/>
+                </svg>
+                Rechercher
+            </button>
+        </div>
     </div>
 
     <div class="table-wrap">
@@ -143,6 +250,9 @@
                     <th>ID Client</th>
                     <th>Nom Client</th>
                     <th>Bon N°</th>
+                    @if (!empty($isPrincipal))
+                        <th>Dépôt</th>
+                    @endif
                     <th>Ville</th>
                     <th>Qte</th>
                     <th>Montant</th>
@@ -156,16 +266,21 @@
                         $montant = (float) $bon->montant;
                         $solde = (float) $bon->solde;
                         $paiement = round($montant - $solde, 2);
+                        $depotKeyBon = (string) ($bon->depot ?? '');
                     @endphp
                     <tr data-row
-                        data-date="{{ $bon->date_bon?->format('d/m/Y') }} {{ $bon->date_bon?->format('Y-m-d') }}"
-                        data-client="{{ $bon->nom_client }}"
-                        data-numero="{{ $bon->numero_bon }}"
+                        data-mois="{{ $bon->date_bon?->format('Y-m') }}"
+                        data-depot="{{ $depotKeyBon }}"
+                        data-client="{{ mb_strtolower($bon->nom_client.' '.($bon->client?->ref_client ?: $bon->client_id)) }}"
+                        data-numero="{{ mb_strtolower((string) $bon->numero_bon) }}"
                         data-sum="achats:{{ $montant }},paiement:{{ $paiement }},solde:{{ $solde }}">
                         <td>{{ $bon->date_bon?->format('d/m/Y') }}</td>
                         <td>{{ $bon->client?->ref_client ?: $bon->client_id }}</td>
                         <td>{{ $bon->nom_client }}</td>
                         <td>{{ $bon->numero_bon }}</td>
+                        @if (!empty($isPrincipal))
+                            <td>{{ $depotLabels[$depotKeyBon] ?? ($depotKeyBon ?: '—') }}</td>
+                        @endif
                         <td>{{ $bon->ville ?: '—' }}</td>
                         <td>{{ number_format((float) $bon->qte_totale, 2, ',', ' ') }}</td>
                         <td>{{ number_format((float) $bon->montant, 2, ',', ' ') }}</td>
@@ -192,9 +307,9 @@
                         </td>
                     </tr>
                 @empty
-                    <tr class="empty-row"><td colspan="9">Aucun bon de vente enregistré.</td></tr>
+                    <tr class="empty-row"><td colspan="{{ !empty($isPrincipal) ? 10 : 9 }}">Aucun bon de vente enregistré.</td></tr>
                 @endforelse
-                    <tr class="empty-row js-filter-empty" style="display:none"><td colspan="9">Aucun résultat.</td></tr>
+                    <tr class="empty-row js-filter-empty" style="display:none"><td colspan="{{ !empty($isPrincipal) ? 10 : 9 }}">Aucun résultat.</td></tr>
             </tbody>
         </table>
     </div>
@@ -827,13 +942,69 @@
         }
     });
 
-    damioBindTableFilters('tableBons', {
-        onChange: function (_visible, sums) {
+    (function () {
+        var clearBtn = document.getElementById('bonVenteClearBtn');
+        var searchBtn = document.getElementById('bonVenteSearchBtn');
+        var inputs = document.querySelectorAll('#bonVenteFilters [data-filter]');
+        var tbody = document.querySelector('#tableBons tbody');
+        if (!tbody) return;
+
+        function applyAnimated() {
+            var filters = {};
+            inputs.forEach(function (input) {
+                filters[input.getAttribute('data-filter')] = (input.value || '').trim().toLowerCase();
+            });
+            var visible = 0;
+            var sums = { achats: 0, paiement: 0, solde: 0 };
+            tbody.querySelectorAll('tr[data-row]').forEach(function (tr) {
+                var ok = true;
+                Object.keys(filters).forEach(function (key) {
+                    if (!filters[key]) return;
+                    var hay = (tr.getAttribute('data-' + key) || '').toLowerCase();
+                    if (hay.indexOf(filters[key]) === -1) ok = false;
+                });
+                if (ok) {
+                    tr.classList.remove('is-hiding');
+                    tr.style.display = '';
+                    visible++;
+                    var sumKeys = (tr.getAttribute('data-sum') || '').split(',').filter(Boolean);
+                    sumKeys.forEach(function (pair) {
+                        var parts = pair.split(':');
+                        var name = parts[0];
+                        var val = parseFloat(parts[1]) || 0;
+                        if (sums[name] !== undefined) sums[name] += val;
+                    });
+                } else {
+                    tr.classList.add('is-hiding');
+                    setTimeout(function () {
+                        if (tr.classList.contains('is-hiding')) tr.style.display = 'none';
+                    }, 260);
+                }
+            });
+            var emptyRow = tbody.querySelector('.js-filter-empty');
+            var dataCount = tbody.querySelectorAll('tr[data-row]').length;
+            if (emptyRow) emptyRow.style.display = (dataCount && !visible) ? '' : 'none';
             document.getElementById('kpiAchats').innerHTML = damioFormatMoney(sums.achats || 0) + ' <span>MAD</span>';
             document.getElementById('kpiPaiement').innerHTML = damioFormatMoney(sums.paiement || 0) + ' <span>MAD</span>';
             document.getElementById('kpiSolde').innerHTML = damioFormatMoney(sums.solde || 0) + ' <span>MAD</span>';
         }
-    });
+
+        if (searchBtn) searchBtn.addEventListener('click', applyAnimated);
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function () {
+                inputs.forEach(function (input) { input.value = ''; });
+                applyAnimated();
+            });
+        }
+        inputs.forEach(function (input) {
+            input.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    applyAnimated();
+                }
+            });
+        });
+    })();
 
     @if ($errors->any())
         openCreateModal();
