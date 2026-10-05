@@ -172,7 +172,7 @@
         : asset('images/logo.png');
     $companyName = (string) config('company.name', 'DAMIO-RIF');
     $companyAddress = trim((string) config('company.address', ''));
-    $companyCity = trim((string) config('company.city', ''));
+    $depotCity = \App\Support\Depots::city($bon->depot);
     $companyPhone = trim((string) config('company.phone', ''));
     $fmt = fn ($v) => number_format((float) $v, 2, ',', ' ');
     $ticket = [
@@ -190,7 +190,7 @@
         'footer' => array_values(array_filter([
             $companyPhone !== '' ? 'Mobile : '.$companyPhone : null,
             $companyAddress !== '' ? 'Adresse : '.$companyAddress : null,
-            $companyCity !== '' ? 'Ville : '.$companyCity : null,
+            'Dépôt : '.$depotCity,
         ])),
     ];
 @endphp

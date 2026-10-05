@@ -29,6 +29,22 @@ class Depots
             ->all();
     }
 
+    /**
+     * Ville du dépôt (dépôt principal et Retour : ville du siège).
+     */
+    public static function city(?string $depotKey): string
+    {
+        $cities = [
+            'tanger' => 'Tanger',
+            'nador' => 'Nador',
+            'tetouan' => 'Tetouan',
+            'houcima' => 'Houcima',
+            'belkciri' => 'Belkciri',
+        ];
+
+        return $cities[$depotKey ?? ''] ?? (string) config('company.city', 'Nador');
+    }
+
     public static function centralKey(): string
     {
         return 'damiorif';
