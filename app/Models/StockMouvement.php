@@ -34,40 +34,37 @@ class StockMouvement extends Model
 
     public static function nextNumero(): string
     {
-        $last = static::query()->orderByDesc('id')->value('numero');
-        $n = 1;
-        if (is_string($last) && preg_match('/MS-(\d+)/', $last, $m)) {
-            $n = ((int) $m[1]) + 1;
-        }
-
-        return 'MS-'.str_pad((string) $n, 4, '0', STR_PAD_LEFT);
+        return static::nextNumeroForPrefix('MS');
     }
 
     public static function nextRetourNumero(): string
     {
-        $last = static::query()
-            ->where('numero', 'like', 'RT-%')
-            ->orderByDesc('id')
-            ->value('numero');
-        $n = 1;
-        if (is_string($last) && preg_match('/RT-(\d+)/', $last, $m)) {
-            $n = ((int) $m[1]) + 1;
-        }
-
-        return 'RT-'.str_pad((string) $n, 4, '0', STR_PAD_LEFT);
+        return static::nextNumeroForPrefix('RT');
     }
 
     public static function nextAjustementNumero(): string
     {
-        $last = static::query()
-            ->where('numero', 'like', 'AJ-%')
-            ->orderByDesc('id')
-            ->value('numero');
-        $n = 1;
-        if (is_string($last) && preg_match('/AJ-(\d+)/', $last, $m)) {
-            $n = ((int) $m[1]) + 1;
-        }
+        return static::nextNumeroForPrefix('AJ');
+    }
 
-        return 'AJ-'.str_pad((string) $n, 4, '0', STR_PAD_LEFT);
+    /**
+     * MS, RT and AJ share the same table and unique index, so the next number
+     * must come from the highest number of the same prefix, not the last row.
+     */
+    private static function nextNumeroForPrefix(string $prefix): string
+    {
+        $max = 0;
+        $pattern = '/^'.preg_quote($prefix, '/').'-(\d+)$/';
+
+        static::query()
+            ->where('numero', 'like', $prefix.'-%')
+            ->pluck('numero')
+            ->each(function ($numero) use ($pattern, &$max) {
+                if (is_string($numero) && preg_match($pattern, $numero, $m)) {
+                    $max = max($max, (int) $m[1]);
+                }
+            });
+
+        return $prefix.'-'.str_pad((string) ($max + 1), 4, '0', STR_PAD_LEFT);
     }
 }
