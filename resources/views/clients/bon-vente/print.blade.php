@@ -96,7 +96,9 @@
             padding: 6px 0;
             border-bottom: 1px dashed #000;
         }
-        .item:last-child { border-bottom: 0; }
+        .item:last-child,
+        .item:has(+ .totals) { border-bottom: 0; }
+        .item-ref .k { text-transform: none; }
         .item-ref {
             font-weight: 800;
             font-size: 12px;
@@ -106,12 +108,18 @@
             margin: 2px 0 4px;
             word-break: break-word;
         }
-        .item-grid {
+        .cols {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2px 8px;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 4px;
         }
-        .item-grid .full { grid-column: 1 / -1; }
+        .cols span:nth-child(2) { text-align: center; }
+        .cols span:nth-child(3) { text-align: right; font-weight: 700; }
+        .cols-head {
+            font-weight: 800;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #000;
+        }
         .k { font-weight: 700; }
         .totals {
             margin-top: 8px;
@@ -128,9 +136,6 @@
         .totals .grand {
             font-size: 14px;
             font-weight: 900;
-            margin-top: 4px;
-            padding-top: 4px;
-            border-top: 1px solid #000;
         }
         .footer {
             margin-top: 12px;
@@ -165,26 +170,15 @@
     $logoSrc = is_file($logoPath)
         ? 'data:image/png;base64,'.base64_encode((string) file_get_contents($logoPath))
         : asset('images/logo.png');
-    $companyName = (string) config('company.name', 'DAMIORIF');
+    $companyName = (string) config('company.name', 'DAMIO-RIF');
     $companyAddress = trim((string) config('company.address', ''));
+    $companyCity = trim((string) config('company.city', ''));
     $companyPhone = trim((string) config('company.phone', ''));
-    $companyEmail = trim((string) config('company.email', ''));
     $fmt = fn ($v) => number_format((float) $v, 2, ',', ' ');
     $ticket = [
         'company' => $companyName,
-        'address' => $companyAddress,
-        'phone' => $companyPhone,
-        'email' => $companyEmail,
-        'meta' => array_values(array_filter([
-            ['N°', (string) $bon->numero_bon],
-            ['Date', (string) $bon->date_bon?->format('d/m/Y')],
-            ['Client', (string) $bon->nom_client],
-            ['ID', (string) $bon->client_id],
-            $bon->ville ? ['Ville', (string) $bon->ville] : null,
-            ['Régl.', (string) ($typesReglement[$bon->type_reglement] ?? ($bon->type_reglement ?: '—'))],
-            ['Échéance', (string) \App\Support\Echeances::label($bon->echeance !== null ? (string) $bon->echeance : null)],
-            ['Dépôt', (string) ($depots[$bon->depot] ?? ($bon->depot ?: '—'))],
-        ])),
+        'numero' => (string) $bon->numero_bon,
+        'client' => (string) $bon->nom_client,
         'lignes' => $bon->lignes->map(fn ($l) => [
             'ref' => (string) ($l->ref ?: '—'),
             'designation' => (string) $l->designation,
@@ -192,11 +186,12 @@
             'pu' => $fmt($l->prix_unitaire),
             'st' => $fmt($l->sous_total),
         ])->values()->all(),
-        'totals' => [
-            ['Qté totale', $fmt($bon->qte_totale)],
-            ['Montant', $fmt($bon->montant)],
-        ],
-        'solde' => $fmt($bon->solde),
+        'total' => $fmt($bon->montant),
+        'footer' => array_values(array_filter([
+            $companyPhone !== '' ? 'Mobile : '.$companyPhone : null,
+            $companyAddress !== '' ? 'Adresse : '.$companyAddress : null,
+            $companyCity !== '' ? 'Ville : '.$companyCity : null,
+        ])),
     ];
 @endphp
 
@@ -219,31 +214,23 @@
             <div class="brand">{{ $companyName }}</div>
         </header>
 
-        <div class="doc-title">Bon de vente</div>
-
         <div class="meta">
-            <div class="row"><span class="label">N°</span><span class="value">{{ $bon->numero_bon }}</span></div>
-            <div class="row"><span class="label">Date</span><span class="value">{{ $bon->date_bon?->format('d/m/Y') }}</span></div>
-            <div class="row"><span class="label">Client</span><span class="value">{{ $bon->nom_client }}</span></div>
-            <div class="row"><span class="label">ID</span><span class="value">{{ $bon->client_id }}</span></div>
-            @if ($bon->ville)
-                <div class="row"><span class="label">Ville</span><span class="value">{{ $bon->ville }}</span></div>
-            @endif
-            <div class="row"><span class="label">Régl.</span><span class="value">{{ $typesReglement[$bon->type_reglement] ?? ($bon->type_reglement ?: '—') }}</span></div>
-            <div class="row"><span class="label">Échéance</span><span class="value">{{ \App\Support\Echeances::label($bon->echeance !== null ? (string) $bon->echeance : null) }}</span></div>
-            <div class="row"><span class="label">Dépôt</span><span class="value">{{ $depots[$bon->depot] ?? ($bon->depot ?: '—') }}</span></div>
+            <div class="row"><span class="label">N°</span><span class="value">{{ $ticket['numero'] }}</span></div>
+            <div class="row"><span class="label">Nom Client</span><span class="value">{{ $ticket['client'] }}</span></div>
         </div>
 
         <hr class="sep">
 
-        @forelse ($bon->lignes as $i => $ligne)
+        <div class="cols cols-head">
+            <span>Qte</span><span>P/U</span><span>S-total</span>
+        </div>
+
+        @forelse ($ticket['lignes'] as $ligne)
             <div class="item">
-                <div class="item-ref">{{ $ligne->ref ?: '—' }}</div>
-                <div class="item-des">{{ $ligne->designation }}</div>
-                <div class="item-grid">
-                    <div><span class="k">Qté</span> {{ number_format((float) $ligne->qte, 2, ',', ' ') }}</div>
-                    <div><span class="k">P/U</span> {{ number_format((float) $ligne->prix_unitaire, 2, ',', ' ') }}</div>
-                    <div class="full"><span class="k">Sous-total</span> {{ number_format((float) $ligne->sous_total, 2, ',', ' ') }}</div>
+                <div class="item-ref"><span class="k">Réf :</span> {{ $ligne['ref'] }}</div>
+                <div class="item-des" dir="auto">{{ $ligne['designation'] }}</div>
+                <div class="cols">
+                    <span>{{ $ligne['qte'] }}</span><span>{{ $ligne['pu'] }}</span><span>{{ $ligne['st'] }}</span>
                 </div>
             </div>
         @empty
@@ -251,22 +238,13 @@
         @endforelse
 
         <div class="totals">
-            <div class="row"><span>Qté totale</span><span>{{ number_format((float) $bon->qte_totale, 2, ',', ' ') }}</span></div>
-            <div class="row"><span>Montant</span><span>{{ number_format((float) $bon->montant, 2, ',', ' ') }}</span></div>
-            <div class="row grand"><span>Solde</span><span>{{ number_format((float) $bon->solde, 2, ',', ' ') }}</span></div>
+            <div class="row grand"><span>TOTAL</span><span>{{ $ticket['total'] }}</span></div>
         </div>
 
         <footer class="footer">
-            <div class="thanks">Merci de votre confiance</div>
-            @if ($companyAddress !== '')
-                <div class="line">{{ $companyAddress }}</div>
-            @endif
-            @if ($companyPhone !== '')
-                <div class="line">Tél : {{ $companyPhone }}</div>
-            @endif
-            @if ($companyEmail !== '')
-                <div class="line">{{ $companyEmail }}</div>
-            @endif
+            @foreach ($ticket['footer'] as $line)
+                <div class="line">{{ $line }}</div>
+            @endforeach
         </footer>
     </div>
 
@@ -396,31 +374,39 @@
                 ctx.drawImage(logo, Math.round((W - lw) / 2), y, lw, lhImg);
                 y += lhImg + Math.round(6 * s);
             }
+            function cols(a, b, c3, px, bold) {
+                var lh = font(px, bold);
+                ctx.direction = 'ltr';
+                ctx.textAlign = 'left';
+                ctx.fillText(a, pad, y);
+                ctx.textAlign = 'center';
+                ctx.fillText(b, W / 2, y);
+                ctx.textAlign = 'right';
+                ctx.fillText(c3, W - pad, y);
+                y += lh;
+            }
+
             para(T.company, 'center', 30, true);
             rule(false, 3);
-            para('BON DE VENTE', 'center', 24, true);
-            y += Math.round(4 * s);
-            T.meta.forEach(function (m) { row(m[0], m[1], 20, false); });
-            rule(true);
+            row('N°', T.numero, 21, false);
+            row('Nom Client', T.client, 21, false);
+            rule(false, 2);
 
+            cols('Qte', 'P/U', 'S-total', 20, true);
+            rule(false, 1);
             if (!T.lignes.length) para('Aucun article.', 'left', 20, false);
             T.lignes.forEach(function (l, i) {
-                para(l.ref, 'left', 21, true);
+                para('Réf : ' + l.ref, 'left', 20, true);
                 para(l.designation, 'left', 20, false);
-                row(l.qte + ' x ' + l.pu, l.st, 20, true);
+                cols(l.qte, l.pu, l.st, 20, true);
                 if (i < T.lignes.length - 1) rule(true, 1);
             });
 
             rule(false, 3);
-            T.totals.forEach(function (t) { row(t[0], t[1], 21, true); });
-            rule(false, 1);
-            row('SOLDE', T.solde, 26, true);
+            row('TOTAL', T.total, 26, true);
             rule(false, 3);
 
-            para('MERCI DE VOTRE CONFIANCE', 'center', 19, true);
-            if (T.address) para(T.address, 'center', 18, false);
-            if (T.phone) para('Tél : ' + T.phone, 'center', 18, false);
-            if (T.email) para(T.email, 'center', 18, false);
+            T.footer.forEach(function (line) { para(line, 'center', 19, false); });
             y += Math.round(10 * s);
 
             var out = document.createElement('canvas');
