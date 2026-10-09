@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" translate="no">
 <head>
     <meta charset="utf-8">
+    <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Bon {{ $bon->numero_bon }}</title>
     <style>
@@ -208,7 +209,7 @@
         <div class="pb-status" id="btStatus" role="status" aria-live="polite"></div>
     </div>
 
-    <div class="ticket">
+    <div class="ticket notranslate" translate="no">
         <header class="header">
             <img src="{{ $logoSrc }}" alt="{{ $companyName }}" width="160" height="80">
             <div class="brand">{{ $companyName }}</div>

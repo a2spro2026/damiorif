@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="fr" dir="ltr">
+<html lang="fr" translate="no" dir="ltr">
 <head>
     <meta charset="utf-8">
+    <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">

@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="dark">
+<html lang="fr" translate="no" data-theme="dark">
 <head>
     <meta charset="utf-8">
+    <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Tableau de Bord') — DAMIO-RIF</title>
     <script>
