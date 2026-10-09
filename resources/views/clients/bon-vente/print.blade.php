@@ -10,8 +10,9 @@
         html, body {
             background: #fff;
             color: #000;
-            font-family: "Courier New", Courier, monospace;
+            font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
             font-size: 12px;
+            font-weight: 700;
             line-height: 1.35;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
@@ -328,7 +329,7 @@
             var y = pad;
 
             function font(px, bold) {
-                ctx.font = (bold ? 'bold ' : '') + Math.round(px * s) + 'px Arial, "Noto Naskh Arabic", sans-serif';
+                ctx.font = (bold ? '900 ' : 'bold ') + Math.round(px * s) + 'px Arial, "Noto Naskh Arabic", sans-serif';
                 return Math.round(px * s * 1.32);
             }
             function para(str, align, px, bold) {
@@ -355,6 +356,19 @@
                     ctx.fillText(l, W - pad, y);
                     y += lh;
                 });
+            }
+            function labelled(label, value, px) {
+                var lh = font(px, true);
+                ctx.direction = 'ltr';
+                ctx.textAlign = 'left';
+                ctx.fillText(label, pad, y);
+                var x = pad + ctx.measureText(label).width + Math.round(6 * s);
+                ctx.direction = RTL.test(value) ? 'rtl' : 'ltr';
+                wrap(ctx, value, W - pad - x).forEach(function (l) {
+                    ctx.fillText(l, x, y);
+                    y += lh;
+                });
+                ctx.direction = 'ltr';
             }
             function rule(dashed, thick) {
                 y += Math.round(5 * s);
@@ -397,7 +411,7 @@
             rule(false, 1);
             if (!T.lignes.length) para('Aucun article.', 'left', 20, false);
             T.lignes.forEach(function (l, i) {
-                para('Réf : ' + l.ref, 'left', 20, true);
+                labelled('Réf :', l.ref, 20);
                 para(l.designation, 'left', 20, false);
                 cols(l.qte, l.pu, l.st, 20, true);
                 if (i < T.lignes.length - 1) rule(true, 1);
