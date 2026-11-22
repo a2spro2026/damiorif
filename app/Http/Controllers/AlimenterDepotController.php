@@ -23,11 +23,42 @@ class AlimenterDepotController extends Controller
             ->only(Depots::regionalKeys())
             ->all();
 
+        $recents = StockMouvement::query()
+            ->with('lignes')
+            ->where('type', 'transfert')
+            ->where('depot', $central)
+            ->where('note', 'like', 'Alimenter dépôt%')
+            ->whereNotNull('depot_destination')
+            ->orderByDesc('id')
+            ->limit(8)
+            ->get();
+
         return view('stock.alimenter-depot.index', [
             'centralKey' => $central,
             'centralLabel' => Depots::options()[$central],
             'destinations' => $destinations,
             'references' => ProduitReferenceService::catalogue(),
+            'recents' => $recents,
+            'depotLabels' => Depots::options(),
+        ]);
+    }
+
+    public function print(StockMouvement $mouvement): View
+    {
+        $this->assertCentralAccess();
+        $this->assertAlimentationBon($mouvement);
+
+        $mouvement->load('lignes');
+        $montant = (float) ($mouvement->montant ?? $mouvement->lignes->sum('sous_total'));
+        $dest = (string) $mouvement->depot_destination;
+
+        return view('stock.alimenter-depot.print', [
+            'mvt' => $mouvement,
+            'montant' => $montant,
+            'depotLabel' => Depots::options()[$dest] ?? $dest,
+            'depotCity' => Depots::city($dest),
+            'centralLabel' => Depots::options()[Depots::centralKey()] ?? 'Dépôt DamioRif',
+            'autoPrint' => request()->boolean('pdf'),
         ]);
     }
 
@@ -62,7 +93,9 @@ class AlimenterDepotController extends Controller
         }
         $montantTotal = round($montantTotal, 2);
 
-        DB::transaction(function () use ($data, $central, $user, $destLabel, $montantTotal) {
+        $transfertId = null;
+
+        DB::transaction(function () use ($data, $central, $user, $destLabel, $montantTotal, &$transfertId) {
             // 1) Stock initial DamioRif (entrée) — même si le dépôt était vide.
             $entree = StockMouvement::create([
                 'date_mouvement' => $data['date_mouvement'],
@@ -114,11 +147,10 @@ class AlimenterDepotController extends Controller
             }
 
             ProduitReferenceService::syncFromBonAchatLignes($data['lignes']);
+            $transfertId = $transfert->id;
         });
 
-        return redirect()
-            ->route('stock.alimenter_depot')
-            ->with('success', 'Stock alimenté pour '.$destLabel.' — Total '.number_format($montantTotal, 2, ',', ' ').' MAD.');
+        return redirect()->route('stock.alimenter_depot.print', $transfertId);
     }
 
     private function assertCentralAccess(): void
@@ -126,5 +158,15 @@ class AlimenterDepotController extends Controller
         if (UserAccess::isDepotUser(auth()->user())) {
             abort(403, 'Seul le dépôt central peut alimenter les dépôts.');
         }
+    }
+
+    private function assertAlimentationBon(StockMouvement $mouvement): void
+    {
+        abort_unless(
+            $mouvement->type === 'transfert'
+            && $mouvement->depot === Depots::centralKey()
+            && str_starts_with((string) $mouvement->note, 'Alimenter dépôt'),
+            404
+        );
     }
 }

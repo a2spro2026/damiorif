@@ -9,9 +9,9 @@
         margin-top:-.5rem;
         display:flex;
         flex-direction:column;
-        height:calc(100vh - 5.5rem);
-        min-height:420px;
-        overflow:hidden;
+        height:auto;
+        min-height:calc(100vh - 5.5rem);
+        overflow:visible;
     }
     .alimenter-top { flex:0 0 auto; }
     .page-toolbar { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:.75rem; flex-wrap:wrap; }
@@ -22,17 +22,37 @@
     .btn-ghost { background:rgba(0,0,0,.25); color:var(--gold-light); border-color:rgba(94,200,179,.35); }
     .btn-sm { padding:.45rem .75rem; font-size:.8rem; }
     .alert-error { background:rgba(140,20,30,.25); border:1px solid rgba(255,100,100,.35); color:#ffb4b4; padding:.75rem 1rem; border-radius:10px; margin-bottom:.75rem; font-size:.9rem; }
-    .alert-ok { background:rgba(20,100,60,.25); border:1px solid rgba(100,255,160,.35); color:#b4ffd0; padding:.75rem 1rem; border-radius:10px; margin-bottom:.75rem; font-size:.9rem; }
+    .recents {
+        margin-top:.55rem;
+        border:1px solid rgba(94,200,179,.18);
+        border-radius:12px;
+        overflow:hidden;
+        background:rgba(0,0,0,.16);
+    }
+    .recents-head {
+        display:flex; align-items:center; justify-content:space-between;
+        padding:.55rem .85rem; color:var(--gold-light); font-size:.78rem;
+        text-transform:uppercase; letter-spacing:.06em; font-weight:700;
+        border-bottom:1px solid rgba(94,200,179,.14);
+    }
+    .recents-table { width:100%; border-collapse:collapse; font-size:.84rem; }
+    .recents-table th, .recents-table td { padding:.45rem .7rem; text-align:left; border-bottom:1px solid rgba(94,200,179,.1); }
+    .recents-table th { color:var(--gold-light); font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; }
+    .recents-table td { color:var(--text); }
+    .recents-table tr:last-child td { border-bottom:0; }
+    .recents-table .num { text-align:right; white-space:nowrap; }
+    .recents-table .act { width:44px; text-align:center; }
 
     .form-shell {
         flex:1 1 auto;
-        min-height:0;
+        min-height:420px;
         display:flex;
         flex-direction:column;
         border-radius:14px;
         border:1px solid rgba(94,200,179,.18);
         background:var(--surface);
         overflow:hidden;
+        margin-top:.75rem;
     }
     .form-sticky {
         flex:0 0 auto;
@@ -107,15 +127,18 @@
         <div class="page-toolbar">
             <h2>Alimenter Dépôt</h2>
             <div class="toolbar-actions">
+                @if ($recents->isNotEmpty())
+                    <a href="{{ route('stock.alimenter_depot.print', $recents->first()->id) }}" target="_blank" class="btn btn-gold" title="Imprimer la dernière facture de charge">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+                        Imprimer
+                    </a>
+                @endif
                 <a href="{{ route('dashboard') }}" class="btn btn-ghost">Fermer</a>
             </div>
         </div>
 
         @if ($errors->any())
             <div class="alert-error">{{ $errors->first() }}</div>
-        @endif
-        @if (session('success'))
-            <div class="alert-ok">{{ session('success') }}</div>
         @endif
     </div>
 
@@ -189,6 +212,38 @@
             </div>
         </div>
     </form>
+
+    @if ($recents->isNotEmpty())
+        <div class="recents" style="margin-top:.85rem;">
+            <div class="recents-head"><span>Dernières alimentations</span></div>
+            <table class="recents-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>N°</th>
+                        <th>Destination</th>
+                        <th class="num">Montant</th>
+                        <th class="act"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($recents as $mvt)
+                        <tr>
+                            <td>{{ $mvt->date_mouvement?->format('d/m/Y') }}</td>
+                            <td>{{ $mvt->numero }}</td>
+                            <td>{{ $depotLabels[$mvt->depot_destination] ?? $mvt->depot_destination }}</td>
+                            <td class="num">{{ number_format((float) ($mvt->montant ?? 0), 2, ',', ' ') }}</td>
+                            <td class="act">
+                                <a class="icon-btn" title="Imprimer facture de charge" href="{{ route('stock.alimenter_depot.print', $mvt->id) }}" target="_blank">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+                                </a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
 </div>
 
 <script>

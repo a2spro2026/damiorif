@@ -37,12 +37,14 @@ class BalanceDepotController extends Controller
 
         $mouvement->load('lignes');
         $montant = (float) ($mouvement->montant ?? $mouvement->lignes->sum('sous_total'));
+        $dest = (string) $mouvement->depot_destination;
 
-        return view('stock.balance.print-bon', [
+        return view('stock.alimenter-depot.print', [
             'mvt' => $mouvement,
             'montant' => $montant,
-            'depotLabel' => Depots::options()[$mouvement->depot_destination] ?? $mouvement->depot_destination,
-            'centralLabel' => Depots::options()[Depots::centralKey()] ?? 'DamioRif',
+            'depotLabel' => Depots::options()[$dest] ?? $dest,
+            'depotCity' => Depots::city($dest),
+            'centralLabel' => Depots::options()[Depots::centralKey()] ?? 'Dépôt DamioRif',
             'autoPrint' => request()->boolean('pdf'),
         ]);
     }

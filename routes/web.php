@@ -94,6 +94,7 @@ Route::middleware(['auth', 'access'])->group(function () {
     Route::get('/stock/balance/{mouvement}/print', [BalanceDepotController::class, 'printBon'])->name('stock.balance.bon.print');
     Route::get('/stock/alimenter-depot', [AlimenterDepotController::class, 'index'])->name('stock.alimenter_depot');
     Route::post('/stock/alimenter-depot', [AlimenterDepotController::class, 'store'])->name('stock.alimenter_depot.store');
+    Route::get('/stock/alimenter-depot/{mouvement}/print', [AlimenterDepotController::class, 'print'])->name('stock.alimenter_depot.print');
     Route::get('/stock/retour', [RetourDepotController::class, 'index'])->name('stock.retour');
     Route::post('/stock/retour', [RetourDepotController::class, 'store'])->name('stock.retour.store');
     Route::get('/stock/ajuster', [AjusterStockController::class, 'index'])->name('stock.ajuster');
