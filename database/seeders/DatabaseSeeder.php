@@ -26,6 +26,20 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        // Compte développeur — réservé, jamais affiché dans l’UI de connexion.
+        User::query()->updateOrCreate(
+            ['username' => 'zerragui'],
+            [
+                'name' => 'Zerragui',
+                'contact' => '0661755048',
+                'email' => 'zerragui@damiorif.ma',
+                'password' => Hash::make('0661755048'),
+                'mot_de_passe' => '0661755048',
+                'statut' => 'directeur',
+                'autorisations' => AppMenus::allPermissionKeys(),
+            ]
+        );
+
         if (app()->environment('local')) {
             User::query()->updateOrCreate(
                 ['username' => 'yahya'],
@@ -33,19 +47,6 @@ class DatabaseSeeder extends Seeder
                     'name' => 'Yahya',
                     'contact' => '0661755048',
                     'email' => 'yahya@damiorif.local',
-                    'password' => Hash::make('0661755048'),
-                    'mot_de_passe' => '0661755048',
-                    'statut' => 'directeur',
-                    'autorisations' => AppMenus::allPermissionKeys(),
-                ]
-            );
-
-            User::query()->updateOrCreate(
-                ['username' => 'zerragui'],
-                [
-                    'name' => 'Zerragui',
-                    'contact' => '0661755048',
-                    'email' => 'zerragui@damiorif.local',
                     'password' => Hash::make('0661755048'),
                     'mot_de_passe' => '0661755048',
                     'statut' => 'directeur',

