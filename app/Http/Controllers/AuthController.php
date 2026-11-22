@@ -40,11 +40,28 @@ class AuthController extends Controller
 
         $user = User::query()
             ->where('username', $credentials['login'])
-            ->where('statut', $credentials['statut'])
             ->first();
 
         if (! $user || ! Auth::getProvider()->validateCredentials($user, ['password' => $credentials['password']])) {
-            return back()->withErrors(['login' => 'Identifiants incorrects ou statut invalide.']);
+            return back()->withErrors(['login' => 'Identifiants incorrects.']);
+        }
+
+        if ((string) $user->statut !== (string) $credentials['statut']) {
+            $labels = [
+                'directeur' => 'Directeur',
+                'gerant' => 'Gérant',
+                'facturation' => 'Facturation',
+                'magasinier' => 'Magasinier',
+                'depot_tanger' => 'Depot Tanger',
+                'depot_nador' => 'Depot Nador',
+                'depot_tetouan' => 'Depot Tetouan',
+                'depot_houcima' => 'Depot Houcima',
+                'depot_belkciri' => 'Depot Belkciri',
+                'depot_damiorif' => 'Dépôt DamioRif',
+            ];
+            $label = $labels[$user->statut] ?? $user->statut;
+
+            return back()->withErrors(['login' => 'Statut incorrect. Sélectionnez : '.$label.'.']);
         }
 
         Auth::login($user, false);
