@@ -23,7 +23,8 @@
     .btn-sm { padding:.45rem .75rem; font-size:.8rem; }
     .alert-error { background:rgba(140,20,30,.25); border:1px solid rgba(255,100,100,.35); color:#ffb4b4; padding:.75rem 1rem; border-radius:10px; margin-bottom:.75rem; font-size:.9rem; }
     .recents {
-        margin-top:.55rem;
+        margin-top:.15rem;
+        margin-bottom:.15rem;
         border:1px solid rgba(94,200,179,.18);
         border-radius:12px;
         overflow:hidden;
@@ -102,6 +103,21 @@
     .icon-btn:hover { background:rgba(94,200,179,.18); }
     .icon-btn.danger:hover { color:#ff9a9a; border-color:rgba(255,100,100,.5); }
     .icon-btn svg { width:15px; height:15px; }
+    .eye-toggle {
+        width:42px; height:42px; border-radius:999px;
+        border:1px solid rgba(94,200,179,.45);
+        background:rgba(0,0,0,.28); color:var(--gold);
+        display:inline-flex; align-items:center; justify-content:center;
+        cursor:pointer; padding:0;
+    }
+    .eye-toggle:hover { background:rgba(94,200,179,.18); }
+    .eye-toggle svg { width:20px; height:20px; }
+    .eye-toggle .icon-hide { display:none; }
+    .eye-toggle.is-open .icon-show { display:none; }
+    .eye-toggle.is-open .icon-hide { display:block; }
+    #alimenterForm.is-collapsed {
+        display:none !important;
+    }
 
     .form-bottom {
         flex:0 0 auto;
@@ -127,6 +143,10 @@
         <div class="page-toolbar">
             <h2>Alimenter Dépôt</h2>
             <div class="toolbar-actions">
+                <button type="button" class="eye-toggle" id="saisieEyeBtn" title="Afficher le tableau de saisie" aria-label="Afficher le tableau de saisie" aria-controls="alimenterForm" aria-expanded="false">
+                    <svg class="icon-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg class="icon-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.77 21.77 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.8 21.8 0 0 1-2.16 3.19M1 1l22 22"/><path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"/></svg>
+                </button>
                 @if ($recents->isNotEmpty())
                     <a href="{{ route('stock.alimenter_depot.print', $recents->first()->id) }}" target="_blank" class="btn btn-gold" title="Imprimer la dernière facture de charge">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
@@ -142,7 +162,39 @@
         @endif
     </div>
 
-    <form method="POST" action="{{ route('stock.alimenter_depot.store') }}" id="alimenterForm" class="form-shell">
+    @if ($recents->isNotEmpty())
+        <div class="recents" id="alimenterRecents">
+            <div class="recents-head"><span>Dernières alimentations</span></div>
+            <table class="recents-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>N°</th>
+                        <th>Destination</th>
+                        <th class="num">Montant</th>
+                        <th class="act"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($recents as $mvt)
+                        <tr>
+                            <td>{{ $mvt->date_mouvement?->format('d/m/Y') }}</td>
+                            <td>{{ $mvt->numero }}</td>
+                            <td>{{ $depotLabels[$mvt->depot_destination] ?? $mvt->depot_destination }}</td>
+                            <td class="num">{{ number_format((float) ($mvt->montant ?? 0), 2, ',', ' ') }}</td>
+                            <td class="act">
+                                <a class="icon-btn" title="Imprimer facture de charge" href="{{ route('stock.alimenter_depot.print', $mvt->id) }}" target="_blank">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+                                </a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
+
+    <form method="POST" action="{{ route('stock.alimenter_depot.store') }}" id="alimenterForm" class="form-shell is-collapsed" hidden>
         @csrf
         <datalist id="refCatalogue">
             @foreach ($references as $ref)
@@ -212,44 +264,33 @@
             </div>
         </div>
     </form>
-
-    @if ($recents->isNotEmpty())
-        <div class="recents" style="margin-top:.85rem;">
-            <div class="recents-head"><span>Dernières alimentations</span></div>
-            <table class="recents-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>N°</th>
-                        <th>Destination</th>
-                        <th class="num">Montant</th>
-                        <th class="act"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($recents as $mvt)
-                        <tr>
-                            <td>{{ $mvt->date_mouvement?->format('d/m/Y') }}</td>
-                            <td>{{ $mvt->numero }}</td>
-                            <td>{{ $depotLabels[$mvt->depot_destination] ?? $mvt->depot_destination }}</td>
-                            <td class="num">{{ number_format((float) ($mvt->montant ?? 0), 2, ',', ' ') }}</td>
-                            <td class="act">
-                                <a class="icon-btn" title="Imprimer facture de charge" href="{{ route('stock.alimenter_depot.print', $mvt->id) }}" target="_blank">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
-                                </a>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    @endif
 </div>
 
 <script>
     const linesBody = document.getElementById('linesBody');
     const references = @json($references);
+    const saisieForm = document.getElementById('alimenterForm');
+    const saisieEyeBtn = document.getElementById('saisieEyeBtn');
     let lineIndex = 0;
+
+    function setSaisieOpen(open) {
+        if (!saisieForm || !saisieEyeBtn) return;
+        saisieForm.classList.toggle('is-collapsed', !open);
+        if (open) saisieForm.removeAttribute('hidden');
+        else saisieForm.setAttribute('hidden', 'hidden');
+        saisieEyeBtn.classList.toggle('is-open', open);
+        saisieEyeBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        saisieEyeBtn.title = open ? 'Masquer le tableau de saisie' : 'Afficher le tableau de saisie';
+        saisieEyeBtn.setAttribute('aria-label', saisieEyeBtn.title);
+    }
+
+    saisieEyeBtn?.addEventListener('click', function () {
+        setSaisieOpen(saisieForm.classList.contains('is-collapsed'));
+    });
+
+    @if ($errors->any())
+        setSaisieOpen(true);
+    @endif
 
     function formatMoney(n) {
         return (Math.round(n * 100) / 100).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
