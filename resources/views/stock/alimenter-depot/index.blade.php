@@ -118,6 +118,9 @@
     #alimenterForm.is-collapsed {
         display:none !important;
     }
+    #alimenterRecents.is-collapsed {
+        display:none !important;
+    }
 
     .form-bottom {
         flex:0 0 auto;
@@ -271,6 +274,7 @@
     const references = @json($references);
     const saisieForm = document.getElementById('alimenterForm');
     const saisieEyeBtn = document.getElementById('saisieEyeBtn');
+    const recentsBox = document.getElementById('alimenterRecents');
     let lineIndex = 0;
 
     function setSaisieOpen(open) {
@@ -278,6 +282,11 @@
         saisieForm.classList.toggle('is-collapsed', !open);
         if (open) saisieForm.removeAttribute('hidden');
         else saisieForm.setAttribute('hidden', 'hidden');
+        if (recentsBox) {
+            recentsBox.classList.toggle('is-collapsed', open);
+            if (open) recentsBox.setAttribute('hidden', 'hidden');
+            else recentsBox.removeAttribute('hidden');
+        }
         saisieEyeBtn.classList.toggle('is-open', open);
         saisieEyeBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
         saisieEyeBtn.title = open ? 'Masquer le tableau de saisie' : 'Afficher le tableau de saisie';
@@ -290,6 +299,8 @@
 
     @if ($errors->any())
         setSaisieOpen(true);
+    @else
+        setSaisieOpen(false);
     @endif
 
     function formatMoney(n) {
